@@ -1,0 +1,13 @@
+{
+  "name": "cartify-mern-app",
+  "version": "1.0.0",
+  "description": "Exercise-8: Development of a Simple Shopping Application Using the MERN Stack - SNU Chennai",
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev"
+  },
+  "keywords": ["mern", "mongodb", "express", "react", "nodejs"],
+  "author": "GuruShrihari",
+  "license": "ISC"
+}
+
