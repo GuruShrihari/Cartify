@@ -7,6 +7,35 @@ const extractEmail = (req) => {
   return String(req.query.emailId || req.body.emailId || '').trim().toLowerCase();
 };
 
+// Middleware to verify admin access
+const verifyAdmin = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Authentication required.' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'cartify_jwt_secret_key_default'
+    );
+
+    const user = await User.findById(decoded.id);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({
+        message: 'Access denied: Administrator privileges required.',
+      });
+    }
+
+    req.user = user;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid or expired authentication token.' });
+  }
+};
+
+// Register a new user (defaults to role: 'user')
 router.post('/users', async (req, res) => {
   try {
     const { username, emailId, age, password } = req.body;
@@ -41,6 +70,7 @@ router.post('/users', async (req, res) => {
       emailId: normalizedEmail,
       age: parsedAge,
       password: String(password),
+      role: 'user', // regular registration is always 'user'
     });
 
     await newUser.save();
@@ -51,6 +81,7 @@ router.post('/users', async (req, res) => {
         username: newUser.username,
         emailId: newUser.emailId,
         age: newUser.age,
+        role: newUser.role,
       },
     });
   } catch (error) {
@@ -59,6 +90,7 @@ router.post('/users', async (req, res) => {
   }
 });
 
+// User login
 router.post('/login', async (req, res) => {
   try {
     const { emailId, password } = req.body;
@@ -84,11 +116,14 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    const userRole = user.role || 'user';
+
     const token = jwt.sign(
       {
         id: user._id,
         emailId: user.emailId,
         username: user.username,
+        role: userRole,
       },
       process.env.JWT_SECRET || 'cartify_jwt_secret_key_default',
       { expiresIn: '24h' }
@@ -101,6 +136,7 @@ router.post('/login', async (req, res) => {
         username: user.username,
         emailId: user.emailId,
         age: user.age,
+        role: userRole,
       },
     });
   } catch (error) {
@@ -109,6 +145,17 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Admin-only: Get list of registered users for analytics
+router.get('/users/all', verifyAdmin, async (req, res) => {
+  try {
+    const users = await User.find({}, '-password').sort({ createdAt: -1 });
+    return res.status(200).json({ count: users.length, users });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error retrieving users: ' + error.message });
+  }
+});
+
+// Complete profile update
 router.put('/users', async (req, res) => {
   try {
     const emailId = extractEmail(req);
@@ -151,6 +198,7 @@ router.put('/users', async (req, res) => {
         username: user.username,
         emailId: user.emailId,
         age: user.age,
+        role: user.role || 'user',
       },
     });
   } catch (error) {
@@ -159,6 +207,7 @@ router.put('/users', async (req, res) => {
   }
 });
 
+// Partial update
 router.patch('/users', async (req, res) => {
   try {
     const emailId = extractEmail(req);
@@ -220,6 +269,7 @@ router.patch('/users', async (req, res) => {
         username: user.username,
         emailId: user.emailId,
         age: user.age,
+        role: user.role || 'user',
       },
     });
   } catch (error) {
@@ -228,6 +278,7 @@ router.patch('/users', async (req, res) => {
   }
 });
 
+// Delete user
 router.delete('/users', async (req, res) => {
   try {
     const emailId = extractEmail(req);
@@ -257,3 +308,4 @@ router.delete('/users', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.verifyAdmin = verifyAdmin;

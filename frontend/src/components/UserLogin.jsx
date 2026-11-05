@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Sparkle } from '@phosphor-icons/react';
+import { ArrowLeft, ShieldCheck, User } from '@phosphor-icons/react';
 
 function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
   const [emailId, setEmailId] = useState('');
@@ -8,7 +8,7 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setErrorMessage(null);
 
     if (!emailId.trim() || !password) {
@@ -52,6 +52,11 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
     setPassword('demo123');
   };
 
+  const handleAdminFill = () => {
+    setEmailId('admin@cartify.com');
+    setPassword('admin123');
+  };
+
   return (
     <div className="auth-wrapper">
       <div className="auth-card">
@@ -65,19 +70,19 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
               gap: '6px',
               color: 'var(--ink-500)',
               fontSize: '12.5px',
-              fontWeight: 600,
+              fontWeight: 500,
               marginBottom: '16px',
             }}
           >
             <ArrowLeft size={16} weight="bold" />
-            <span>Continue shopping as Guest</span>
+            <span>Continue as Guest</span>
           </button>
         )}
 
         <div className="auth-header">
           <h2 className="page-title">Sign In to Cartify</h2>
           <p className="page-subtitle">
-            Access your orders, saved addresses & personalised recommendations
+            Customer orders, personalized catalog & admin RBAC management
           </p>
         </div>
 
@@ -124,36 +129,59 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
             disabled={isSubmitting}
             style={{ marginTop: '12px' }}
           >
-            {isSubmitting ? 'Verifying...' : 'Sign In'}
+            {isSubmitting ? 'Authenticating...' : 'Sign In'}
           </button>
 
-          {/* Quick Demo Login Option */}
-          <button
-            type="button"
-            onClick={handleDemoFill}
-            style={{
-              marginTop: '10px',
-              width: '100%',
-              height: '36px',
-              background: '#f8fafc',
-              border: '1px dashed #cbd5e1',
-              borderRadius: '6px',
-              fontSize: '12.5px',
-              fontWeight: 600,
-              color: 'var(--ink-700)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-            }}
-          >
-            <Sparkle size={14} weight="fill" color="var(--accent-gold)" />
-            <span>Use Demo Account (demo@cartify.com)</span>
-          </button>
+          {/* Quick Login Helpers for Evaluator / User */}
+          <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={handleDemoFill}
+              style={{
+                width: '100%',
+                height: '34px',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-line)',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 500,
+                color: 'var(--ink-800)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
+            >
+              <User size={14} weight="regular" />
+              <span>Fill Customer (demo@cartify.com / demo123)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleAdminFill}
+              style={{
+                width: '100%',
+                height: '34px',
+                background: '#f8fafc',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#0f172a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
+            >
+              <ShieldCheck size={15} weight="fill" color="#2563eb" />
+              <span>Fill Admin (admin@cartify.com / admin123)</span>
+            </button>
+          </div>
         </form>
 
         <div className="auth-footer">
-          New customer?
+          New to Cartify?
           <button
             type="button"
             className="auth-link"

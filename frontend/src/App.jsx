@@ -3,6 +3,10 @@ import Navbar from './components/Navbar';
 import UserRegistration from './components/UserRegistration';
 import UserLogin from './components/UserLogin';
 import ProductCatalog from './components/ProductCatalog';
+import ProductDetailPage from './components/ProductDetailPage';
+import OrderSuccessPage from './components/OrderSuccessPage';
+import AdminDashboard from './components/AdminDashboard';
+import CheckoutModal from './components/CheckoutModal';
 import UserProfileManagement from './components/UserProfileManagement';
 import CartDrawer from './components/CartDrawer';
 import { Check } from '@phosphor-icons/react';
@@ -11,6 +15,8 @@ import './App.css';
 function App() {
   // Default view is 'products' so guests can browse freely without login
   const [activeView, setActiveView] = useState('products');
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [currentOrder, setCurrentOrder] = useState(null);
 
   // Synchronous state initialization from localStorage
   const [token, setToken] = useState(() => localStorage.getItem('cartify_token') || null);
@@ -39,6 +45,11 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
+  // Razorpay Checkout Modal state
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [checkoutItems, setCheckoutItems] = useState([]);
+  const [checkoutTotal, setCheckoutTotal] = useState(0);
+
   // Sync cart to localStorage
   useEffect(() => {
     try {
@@ -52,7 +63,7 @@ function App() {
     setToastMessage(message);
     setTimeout(() => {
       setToastMessage(null);
-    }, 2500);
+    }, 2800);
   };
 
   const handleAddToCart = (product) => {
@@ -86,24 +97,62 @@ function App() {
     setCart((prevCart) => prevCart.filter((item) => item.productId !== productId));
   };
 
-  const handleCheckout = () => {
-    if (!user) {
-      setIsCartOpen(false);
+  // Dedicated Product Page selection
+  const handleSelectProduct = (product) => {
+    setSelectedProduct(product);
+    setActiveView('product-detail');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Buy Now direct from individual product page or quickview
+  const handleDirectBuy = (product, quantity = 1) => {
+    const total = Number(product.productPrice || 0) * quantity;
+    setCheckoutItems([
+      {
+        productId: product.productId,
+        productName: product.productName,
+        productPrice: Number(product.productPrice),
+        productImage: product.productImage,
+        quantity,
+      },
+    ]);
+    setCheckoutTotal(total);
+    setIsCheckoutOpen(true);
+  };
+
+  // Cart checkout via Razorpay modal
+  const handleCartCheckout = () => {
+    if (cart.length === 0) return;
+    const total = cart.reduce(
+      (sum, item) => sum + Number(item.productPrice || 0) * item.quantity,
+      0
+    );
+    setCheckoutItems(cart);
+    setCheckoutTotal(total);
+    setIsCartOpen(false);
+    setIsCheckoutOpen(true);
+  };
+
+  // Payment completed & verified via backend + Resend email sent
+  const handlePaymentSuccess = (order) => {
+    setCurrentOrder(order);
+    // Remove purchased items from cart if any
+    const purchasedIds = new Set((order.items || []).map((i) => i.productId));
+    setCart((prev) => prev.filter((i) => !purchasedIds.has(i.productId)));
+    setActiveView('order-success');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast('Payment verified via Razorpay! Confirmation email dispatched.');
+  };
+
+  // Navigation with RBAC guard
+  const handleNavigateView = (view) => {
+    if (view === 'admin' && user?.role !== 'admin') {
+      showToast('Admin privilege required to access portal');
       setActiveView('login');
-      showToast('Please sign in or create an account to checkout.');
-    } else {
-      const total = cart.reduce(
-        (sum, item) => sum + Number(item.productPrice || 0) * item.quantity,
-        0
-      );
-      alert(
-        `Order Confirmed\n\nThank you, ${user.username}.\nYour order of ${cart.length} item(s) (₹${total.toLocaleString(
-          'en-IN'
-        )}) is being prepared for dispatch.`
-      );
-      setCart([]);
-      setIsCartOpen(false);
+      return;
     }
+    setActiveView(view);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleLoginSuccess = ({ user: loggedInUser, token: authToken }) => {
@@ -111,8 +160,14 @@ function App() {
     setToken(authToken);
     localStorage.setItem('cartify_token', authToken);
     localStorage.setItem('cartify_user', JSON.stringify(loggedInUser));
-    setActiveView('products');
-    showToast(`Welcome back, ${loggedInUser.username}`);
+
+    if (loggedInUser.role === 'admin') {
+      setActiveView('admin');
+      showToast(`Welcome Admin, ${loggedInUser.username}`);
+    } else {
+      setActiveView('products');
+      showToast(`Welcome back, ${loggedInUser.username}`);
+    }
   };
 
   const handleLogout = () => {
@@ -151,7 +206,7 @@ function App() {
       {/* Main Header / Navbar */}
       <Navbar
         activeView={activeView}
-        setActiveView={setActiveView}
+        setActiveView={handleNavigateView}
         user={user}
         onLogout={handleLogout}
         searchQuery={searchQuery}
@@ -175,6 +230,39 @@ function App() {
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
             onRequireAuth={() => setActiveView('login')}
+            onSelectProduct={handleSelectProduct}
+          />
+        )}
+
+        {/* Dedicated Individual Product Detail Page */}
+        {activeView === 'product-detail' && (
+          <ProductDetailPage
+            product={selectedProduct}
+            onBack={() => setActiveView('products')}
+            onAddToCart={handleAddToCart}
+            onBuyNow={handleDirectBuy}
+            isInCart={cart.find((i) => i.productId === selectedProduct?.productId)?.quantity || 0}
+          />
+        )}
+
+        {/* Order Confirmation / Success Page (Post-Razorpay Payment & Resend Dispatch) */}
+        {activeView === 'order-success' && (
+          <OrderSuccessPage
+            order={currentOrder}
+            onContinueShopping={() => setActiveView('products')}
+            onNavigateToAccount={() => {
+              if (user) setActiveView('profile');
+              else setActiveView('login');
+            }}
+          />
+        )}
+
+        {/* RBAC Admin Portal: Restricted to role === 'admin' */}
+        {activeView === 'admin' && (
+          <AdminDashboard
+            user={user}
+            token={token}
+            onNavigateToStore={() => setActiveView('products')}
           />
         )}
 
@@ -218,8 +306,18 @@ function App() {
         cart={cart}
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
-        onCheckout={handleCheckout}
+        onCheckout={handleCartCheckout}
         user={user}
+      />
+
+      {/* Razorpay Checkout Modal */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        items={checkoutItems}
+        totalAmount={checkoutTotal}
+        user={user}
+        onPaymentSuccess={handlePaymentSuccess}
       />
 
       {/* Minimalist Footer */}
@@ -231,10 +329,51 @@ function App() {
           </div>
 
           <div className="footer-links">
-            <button type="button" onClick={() => { setActiveView('products'); setSelectedCategory('ALL'); }}>Catalog</button>
-            <button type="button" onClick={() => { setActiveView('products'); setSelectedCategory('ELECTRONICS'); }}>Electronics</button>
-            <button type="button" onClick={() => { setActiveView('products'); setSelectedCategory('APPAREL'); }}>Apparel</button>
-            <button type="button" onClick={() => { setActiveView('products'); setSelectedCategory('HOME'); }}>Living</button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveView('products');
+                setSelectedCategory('ALL');
+              }}
+            >
+              Catalog
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveView('products');
+                setSelectedCategory('ELECTRONICS');
+              }}
+            >
+              Electronics
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveView('products');
+                setSelectedCategory('APPAREL');
+              }}
+            >
+              Apparel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveView('products');
+                setSelectedCategory('HOME');
+              }}
+            >
+              Living
+            </button>
+            {user?.role === 'admin' && (
+              <button
+                type="button"
+                onClick={() => setActiveView('admin')}
+                style={{ fontWeight: 600, color: 'var(--ink-900)' }}
+              >
+                Admin Portal
+              </button>
+            )}
           </div>
 
           <div className="footer-meta">

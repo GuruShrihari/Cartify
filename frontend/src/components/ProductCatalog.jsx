@@ -19,6 +19,7 @@ function ProductCatalog({
   selectedCategory,
   onSelectCategory,
   onRequireAuth,
+  onSelectProduct,
 }) {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -270,6 +271,7 @@ function ProductCatalog({
                 <ProductCard
                   key={product.productId}
                   product={product}
+                  onSelectProduct={onSelectProduct}
                   onQuickView={handleOpenQuickView}
                   onAddToCart={onAddToCart}
                   isInCart={getCartItemQuantity(product.productId)}
@@ -306,6 +308,7 @@ function ProductCatalog({
                 <ProductCard
                   key={product.productId}
                   product={product}
+                  onSelectProduct={onSelectProduct}
                   onQuickView={handleOpenQuickView}
                   onAddToCart={onAddToCart}
                   isInCart={getCartItemQuantity(product.productId)}
@@ -342,6 +345,7 @@ function ProductCatalog({
                 <ProductCard
                   key={product.productId}
                   product={product}
+                  onSelectProduct={onSelectProduct}
                   onQuickView={handleOpenQuickView}
                   onAddToCart={onAddToCart}
                   isInCart={getCartItemQuantity(product.productId)}
@@ -378,6 +382,7 @@ function ProductCatalog({
                 <ProductCard
                   key={product.productId}
                   product={product}
+                  onSelectProduct={onSelectProduct}
                   onQuickView={handleOpenQuickView}
                   onAddToCart={onAddToCart}
                   isInCart={getCartItemQuantity(product.productId)}
@@ -482,6 +487,7 @@ function ProductCatalog({
                 <ProductCard
                   key={product.productId}
                   product={product}
+                  onSelectProduct={onSelectProduct}
                   onQuickView={handleOpenQuickView}
                   onAddToCart={onAddToCart}
                   isInCart={getCartItemQuantity(product.productId)}

@@ -3,6 +3,7 @@ import {
   ShoppingBag,
   User,
   SignOut,
+  ShieldCheck,
 } from '@phosphor-icons/react';
 
 function Navbar({
@@ -31,6 +32,8 @@ function Navbar({
       catalogEl.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  const isAdmin = user && user.role === 'admin';
 
   return (
     <header className="navbar">
@@ -65,6 +68,19 @@ function Navbar({
 
         {/* Minimal Right Actions */}
         <nav className="nav-actions" aria-label="Account and Bag">
+          {/* RBAC Admin Link: visible ONLY if role === 'admin' */}
+          {isAdmin && (
+            <button
+              type="button"
+              className={`nav-admin-pill ${activeView === 'admin' ? 'active' : ''}`}
+              onClick={() => setActiveView('admin')}
+              title="Admin Management & Analytics"
+            >
+              <ShieldCheck size={16} weight="fill" />
+              <span>Admin Portal</span>
+            </button>
+          )}
+
           {user ? (
             <>
               <button

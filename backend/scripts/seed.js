@@ -5,8 +5,9 @@
  * Seeds the Products collection with a curated catalog whose images come
  * from Unsplash, plus a demo user for logging in.
  */
+const path = require('path');
 const dotenv = require('dotenv');
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const connectDB = require('../config/db');
 const Product = require('../models/Product');
@@ -184,6 +185,15 @@ const demoUser = {
   emailId: 'demo@cartify.com',
   age: 22,
   password: 'demo123',
+  role: 'user',
+};
+
+const demoAdmin = {
+  username: 'Store Administrator',
+  emailId: 'admin@cartify.com',
+  age: 30,
+  password: 'admin123',
+  role: 'admin',
 };
 
 const seed = async () => {
@@ -211,11 +221,19 @@ const seed = async () => {
     { upsert: true }
   );
 
+  const adminResult = await User.updateOne(
+    { emailId: demoAdmin.emailId },
+    { $set: demoAdmin },
+    { upsert: true }
+  );
+
   console.log(`[Seed]: Products inserted -> ${result.upsertedCount}, updated -> ${result.modifiedCount}`);
   console.log(`[Seed]: Demo user inserted -> ${userResult.upsertedCount}, updated -> ${userResult.modifiedCount}`);
+  console.log(`[Seed]: Admin user inserted -> ${adminResult.upsertedCount}, updated -> ${adminResult.modifiedCount}`);
   console.log(`[Seed]: Total products now -> ${await Product.countDocuments()}`);
   console.log(`[Seed]: Total users now -> ${await User.countDocuments()}`);
-  console.log('[Seed]: Demo login -> demo@cartify.com / demo123');
+  console.log('[Seed]: Demo login -> demo@cartify.com / demo123 (role: user)');
+  console.log('[Seed]: Admin login -> admin@cartify.com / admin123 (role: admin)');
 
   await mongoose.disconnect();
   console.log('[Seed]: Done.');

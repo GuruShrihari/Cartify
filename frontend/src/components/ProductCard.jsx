@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Star, Check, ShoppingBag, Eye } from '@phosphor-icons/react';
 
-function ProductCard({ product, onQuickView, onAddToCart, isInCart }) {
+function ProductCard({ product, onSelectProduct, onQuickView, onAddToCart, isInCart }) {
   const [justAdded, setJustAdded] = useState(false);
 
   const currentPrice = Number(product.productPrice || 0);
@@ -18,6 +18,14 @@ function ProductCard({ product, onQuickView, onAddToCart, isInCart }) {
     .join('')
     .toUpperCase();
 
+  const handleCardClick = () => {
+    if (onSelectProduct) {
+      onSelectProduct(product);
+    } else if (onQuickView) {
+      onQuickView(product);
+    }
+  };
+
   const handleAdd = (e) => {
     e.stopPropagation();
     if (onAddToCart) {
@@ -30,22 +38,22 @@ function ProductCard({ product, onQuickView, onAddToCart, isInCart }) {
   return (
     <article
       className="product-card"
-      onClick={() => onQuickView && onQuickView(product)}
+      onClick={handleCardClick}
       tabIndex={0}
       role="button"
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          onQuickView && onQuickView(product);
+          handleCardClick();
         }
       }}
     >
-      {/* Quick View Trigger on Hover */}
+      {/* Quick Preview Trigger on Hover */}
       <button
         type="button"
         className="card-quickview-btn"
-        title="Quick view"
-        aria-label={`View ${product.productName}`}
+        title="Quick preview"
+        aria-label={`Preview ${product.productName}`}
         onClick={(e) => {
           e.stopPropagation();
           onQuickView && onQuickView(product);
