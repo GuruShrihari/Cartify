@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   Sun,
   Moon,
+  Package,
 } from '@phosphor-icons/react';
 
 function Navbar({
@@ -56,13 +57,14 @@ function Navbar({
   return (
     <header className="navbar">
       <div className="nav-main">
-        {/* Minimalist Logo */}
+        {/* Minimalist Logo with logo.png */}
         <a
           href="/products"
           className="brand-logo"
           onClick={handleHomeClick}
           aria-label="Cartify Home"
         >
+          <img src="/logo.png" alt="Cartify Logo" className="brand-logo-img" />
           <span className="brand-text">Cartify</span>
         </a>
 
@@ -111,6 +113,15 @@ function Navbar({
 
           {user ? (
             <>
+              <button
+                type="button"
+                className={`nav-action-text-btn ${location.pathname === '/orders' ? 'active' : ''}`}
+                onClick={() => navigate('/orders')}
+                title="View your order history"
+              >
+                <Package size={16} weight="regular" />
+                <span>Orders</span>
+              </button>
               <button
                 type="button"
                 className={`nav-action-text-btn ${isProfileActive ? 'active' : ''}`}

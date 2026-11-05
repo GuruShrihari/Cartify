@@ -138,7 +138,7 @@ function OrderSuccessPage({ order, onContinueShopping, onNavigateToAccount }) {
               className="btn-outline-minimal"
               onClick={onNavigateToAccount}
             >
-              <span>View Your Account</span>
+              <span>View Your Orders</span>
               <ArrowRight size={14} weight="bold" />
             </button>
           )}

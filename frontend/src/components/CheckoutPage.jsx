@@ -115,11 +115,17 @@ function CheckoutPage({
 
   const finalizePayment = async (razorpayResponse) => {
     try {
+      const token = localStorage.getItem('cartify_token');
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const verifyRes = await fetch('/api/payments/verify-payment', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           razorpay_order_id: razorpayResponse.razorpay_order_id,
           razorpay_payment_id: razorpayResponse.razorpay_payment_id,
@@ -127,8 +133,8 @@ function CheckoutPage({
           items,
           totalAmount,
           shippingAddress,
-          customerEmail: shippingAddress.email,
-          customerName: shippingAddress.fullName,
+          customerEmail: (shippingAddress.email || user?.emailId || '').trim(),
+          customerName: (shippingAddress.fullName || user?.username || 'Customer').trim(),
         }),
       });
 

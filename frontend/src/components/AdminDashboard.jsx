@@ -11,6 +11,8 @@ import {
   ArrowSquareOut,
   CaretLeft,
   CaretRight,
+  PencilSimple,
+  X,
 } from '@phosphor-icons/react';
 
 function AdminDashboard({ user, token, onNavigateToStore }) {
@@ -21,6 +23,10 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
   const [products, setProducts] = useState([]);
   const [statusMessage, setStatusMessage] = useState(null);
   const [statusType, setStatusType] = useState('info');
+
+  // Edit Product Modal State
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [isUpdatingProduct, setIsUpdatingProduct] = useState(false);
 
   // Pagination for Current Catalog
   const [catalogPage, setCatalogPage] = useState(1);
@@ -205,6 +211,65 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
     }
   };
 
+  // Handle Open Edit Product Modal
+  const handleOpenEditProduct = (prod) => {
+    setEditingProduct({
+      productId: prod.productId,
+      productName: prod.productName || '',
+      category: prod.category || 'ELECTRONICS',
+      productPrice: prod.productPrice !== undefined ? prod.productPrice : '',
+      quantity: prod.quantity !== undefined ? prod.quantity : 25,
+      productImage: prod.productImage || '',
+      description: prod.description || '',
+    });
+  };
+
+  // Handle Save Product Edit
+  const handleSaveProductEdit = async (e) => {
+    if (e) e.preventDefault();
+    if (!editingProduct) return;
+
+    setIsUpdatingProduct(true);
+    setStatusMessage(null);
+
+    try {
+      const res = await fetch(`/api/products/${editingProduct.productId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productName: editingProduct.productName.trim(),
+          category: editingProduct.category.trim().toUpperCase(),
+          productPrice: Number(editingProduct.productPrice),
+          quantity: Number(editingProduct.quantity),
+          productImage: editingProduct.productImage.trim(),
+          description: editingProduct.description.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatusType('error');
+        setStatusMessage(data.message || 'Failed to update product.');
+      } else {
+        setStatusType('success');
+        setStatusMessage(`Product "${data.product?.productName || editingProduct.productName}" updated successfully.`);
+        setProducts((prev) =>
+          prev.map((p) => (p.productId === editingProduct.productId ? data.product : p))
+        );
+        setEditingProduct(null);
+      }
+    } catch (err) {
+      setStatusType('error');
+      setStatusMessage('Error updating product: ' + err.message);
+    } finally {
+      setIsUpdatingProduct(false);
+    }
+  };
+
   // Handle Update Order Status
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
@@ -281,7 +346,8 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
       {/* Admin Top Header */}
       <div className="admin-header">
         <div>
-          <div className="admin-badge">
+          <div className="admin-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            <img src="/logo.png" alt="Cartify" style={{ width: '16px', height: '16px', objectFit: 'contain', borderRadius: '3px' }} />
             <ShieldCheck size={14} weight="fill" />
             <span>Cartify RBAC Admin Portal</span>
           </div>
@@ -695,14 +761,29 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
                         </span>
                       </td>
                       <td>
-                        <button
-                          type="button"
-                          className="btn-action-icon danger"
-                          onClick={() => handleDeleteProduct(p.productId, p.productName)}
-                          title="Delete product"
-                        >
-                          <Trash size={16} weight="regular" />
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            className="btn-action-icon"
+                            onClick={() => handleOpenEditProduct(p)}
+                            title="Edit product details"
+                            style={{
+                              background: 'var(--bg-hover)',
+                              color: 'var(--ink-800)',
+                              border: '1px solid var(--border-line)',
+                            }}
+                          >
+                            <PencilSimple size={15} weight="bold" />
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-action-icon danger"
+                            onClick={() => handleDeleteProduct(p.productId, p.productName)}
+                            title="Delete product"
+                          >
+                            <Trash size={15} weight="regular" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -817,6 +898,157 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Edit Product Modal */}
+      {editingProduct && (
+        <div className="modal-overlay" onClick={() => setEditingProduct(null)}>
+          <div
+            className="modal-card"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              display: 'block',
+              maxWidth: '540px',
+              width: '92%',
+              padding: '28px 26px',
+            }}
+          >
+            <button
+              type="button"
+              className="modal-close-btn"
+              onClick={() => setEditingProduct(null)}
+              aria-label="Close modal"
+            >
+              <X size={18} weight="bold" />
+            </button>
+
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '6px', background: 'var(--bg-subtle)', padding: '2px 8px', borderRadius: '4px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--ink-600)' }}>
+                  SKU #{editingProduct.productId}
+                </span>
+              </div>
+              <h3 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 4px', color: 'var(--ink-900)' }}>
+                Edit Product
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--ink-500)', margin: 0 }}>
+                Update title, category, pricing, stock inventory, or details
+              </p>
+            </div>
+
+            <form onSubmit={handleSaveProductEdit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '12.5px', fontWeight: 600 }}>Product Name *</label>
+                <input
+                  type="text"
+                  className="text-input"
+                  value={editingProduct.productName}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, productName: e.target.value })
+                  }
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '12.5px', fontWeight: 600 }}>Category *</label>
+                  <select
+                    className="text-input"
+                    value={editingProduct.category}
+                    onChange={(e) =>
+                      setEditingProduct({ ...editingProduct, category: e.target.value })
+                    }
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <option value="ELECTRONICS">ELECTRONICS</option>
+                    <option value="FOOTWEAR">FOOTWEAR</option>
+                    <option value="ACCESSORIES">ACCESSORIES</option>
+                    <option value="BAGS">BAGS</option>
+                    <option value="AUDIO">AUDIO</option>
+                    <option value="APPAREL">APPAREL</option>
+                    <option value="HOME">HOME</option>
+                    <option value="BEAUTY">BEAUTY</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '12.5px', fontWeight: 600 }}>Price (INR ₹) *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    className="text-input price-num"
+                    value={editingProduct.productPrice}
+                    onChange={(e) =>
+                      setEditingProduct({ ...editingProduct, productPrice: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '12.5px', fontWeight: 600 }}>Stock Units *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="text-input price-num"
+                    value={editingProduct.quantity}
+                    onChange={(e) =>
+                      setEditingProduct({ ...editingProduct, quantity: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '12.5px', fontWeight: 600 }}>Image URL</label>
+                  <input
+                    type="url"
+                    className="text-input"
+                    value={editingProduct.productImage}
+                    onChange={(e) =>
+                      setEditingProduct({ ...editingProduct, productImage: e.target.value })
+                    }
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '12.5px', fontWeight: 600 }}>Description</label>
+                <textarea
+                  className="text-input"
+                  style={{ height: '72px', padding: '8px 12px', resize: 'vertical', fontSize: '13px' }}
+                  value={editingProduct.description}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, description: e.target.value })
+                  }
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  className="btn-outline-minimal"
+                  onClick={() => setEditingProduct(null)}
+                  disabled={isUpdatingProduct}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-solid"
+                  disabled={isUpdatingProduct}
+                  style={{ width: 'auto', padding: '0 24px' }}
+                >
+                  {isUpdatingProduct ? 'Saving Changes...' : 'Save Product Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

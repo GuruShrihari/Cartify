@@ -176,8 +176,8 @@ router.delete('/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-// PATCH /api/products/:id (Admin Only: update stock or details)
-router.patch('/:id', verifyAdmin, async (req, res) => {
+// PATCH & PUT /api/products/:id (Admin Only: update stock or details)
+const handleUpdateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -206,7 +206,10 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
   } catch (error) {
     return res.status(500).json({ message: 'Error updating product: ' + error.message });
   }
-});
+};
+
+router.patch('/:id', verifyAdmin, handleUpdateProduct);
+router.put('/:id', verifyAdmin, handleUpdateProduct);
 
 // Seed fakestoreapi products
 router.post('/seed', async (req, res) => {

@@ -137,13 +137,14 @@ const sendOrderConfirmationEmail = async ({ toEmail, username, order }) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: mailFrom,
+        from: `Cartify <${mailFrom}>`,
         to: [toEmail],
         subject: `Order Confirmed: #${order.orderId} - Cartify`,
         html: emailHtml,
       }),
     });
     const data = await res.json();
+    console.log(`[Resend Order Confirmation Email] Dispatched to ${toEmail}:`, data);
     return { success: res.ok, data };
   } catch (err) {
     console.error('[Resend Email Error]:', err.message);
@@ -217,9 +218,9 @@ router.post('/verify-payment', authenticateRequest, async (req, res) => {
       }
     }
 
-    // Determine user
-    const email = (req.user?.emailId || customerEmail || 'customer@cartify.com').trim().toLowerCase();
-    const name = (req.user?.username || customerName || 'Valued Customer').trim();
+    // Determine recipient user and email
+    const email = (customerEmail || req.user?.emailId || 'customer@cartify.com').trim().toLowerCase();
+    const name = (customerName || req.user?.username || 'Valued Customer').trim();
 
     // Generate readable Order ID
     const orderId = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;

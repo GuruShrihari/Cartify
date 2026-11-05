@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   User,
   EnvelopeSimple,
@@ -15,6 +16,7 @@ import {
   SlidersHorizontal,
   WarningOctagon,
   WarningCircle,
+  Package,
 } from '@phosphor-icons/react';
 
 function UserProfileManagement({
@@ -23,6 +25,7 @@ function UserProfileManagement({
   onAccountDeleted,
   onNavigateToAdmin,
 }) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('full-update'); // 'full-update' | 'quick-patch' | 'security'
 
   // Full Update (PUT) Form State
@@ -239,9 +242,20 @@ function UserProfileManagement({
           </div>
         </div>
 
-        {/* Right Action: Admin Shortcut if admin */}
-        {isAdmin && onNavigateToAdmin && (
-          <div className="profile-hero-action">
+        {/* Right Action: Orders & Admin Shortcuts */}
+        <div className="profile-hero-action" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn-outline-minimal"
+            onClick={() => navigate('/orders')}
+            title="View your order history"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Package size={16} weight="regular" />
+            <span>My Orders</span>
+          </button>
+
+          {isAdmin && onNavigateToAdmin && (
             <button
               type="button"
               className="btn-admin-portal-link"
@@ -249,11 +263,11 @@ function UserProfileManagement({
               title="Navigate to Store Admin Dashboard"
             >
               <ShieldCheck size={16} weight="fill" />
-              <span>Open Admin Portal</span>
+              <span>Admin Portal</span>
               <ArrowRight size={14} weight="bold" />
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* =========================================================================

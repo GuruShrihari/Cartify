@@ -10,6 +10,7 @@ import AdminDashboard from './components/AdminDashboard';
 import CheckoutPage from './components/CheckoutPage';
 import CheckoutModal from './components/CheckoutModal';
 import UserProfileManagement from './components/UserProfileManagement';
+import UserOrdersPage from './components/UserOrdersPage';
 import CartDrawer from './components/CartDrawer';
 import { Check, LockSimple } from '@phosphor-icons/react';
 import './App.css';
@@ -411,10 +412,22 @@ function AppContent() {
                 order={currentOrder}
                 onContinueShopping={() => navigate('/products')}
                 onNavigateToAccount={() => {
-                  if (user) navigate('/profile');
+                  if (user) navigate('/orders');
                   else navigate('/login');
                 }}
               />
+            }
+          />
+
+          {/* User Orders Page: /orders */}
+          <Route
+            path="/orders"
+            element={
+              user ? (
+                <UserOrdersPage user={user} token={token} />
+              ) : (
+                <Navigate to="/login" state={{ from: '/orders', notice: 'Please sign in to view your orders.' }} replace />
+              )
             }
           />
 
@@ -515,7 +528,10 @@ function AppContent() {
       <footer className="footer">
         <div className="footer-inner">
           <div className="footer-brand">
-            <span className="brand-name">Cartify</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src="/logo.png" alt="Cartify Logo" style={{ width: '22px', height: '22px', objectFit: 'contain', borderRadius: '4px' }} />
+              <span className="brand-name">Cartify</span>
+            </div>
             <p className="brand-tagline">Everyday objects, thoughtfully considered.</p>
           </div>
 

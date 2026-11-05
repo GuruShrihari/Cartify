@@ -93,6 +93,9 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
         )}
 
         <div className="auth-header">
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
+            <img src="/logo.png" alt="Cartify" style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px' }} />
+          </div>
           <h2 className="page-title">Sign In to Cartify</h2>
           <p className="page-subtitle">
             Customer orders, personalized catalog & admin RBAC management

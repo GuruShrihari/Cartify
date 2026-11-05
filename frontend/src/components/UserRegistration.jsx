@@ -112,6 +112,9 @@ function UserRegistration({ onRegisterSuccess, onNavigateToLogin, onCancel }) {
         )}
 
         <div className="auth-header">
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
+            <img src="/logo.png" alt="Cartify" style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px' }} />
+          </div>
           <h2 className="page-title">Create an Account</h2>
           <p className="page-subtitle">
             Join Cartify for seamless shopping, order tracking and member deals

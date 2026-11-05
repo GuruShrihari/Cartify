@@ -299,6 +299,15 @@ img {
   text-decoration: none;
 }
 
+.brand-logo-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  margin-right: 9px;
+  border-radius: var(--radius-xs);
+  display: inline-block;
+}
+
 .brand-text {
   font-size: 19px;
   font-weight: 700;
