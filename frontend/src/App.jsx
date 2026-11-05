@@ -6,6 +6,7 @@ import ProductCatalog from './components/ProductCatalog';
 import ProductDetailPage from './components/ProductDetailPage';
 import OrderSuccessPage from './components/OrderSuccessPage';
 import AdminDashboard from './components/AdminDashboard';
+import CheckoutPage from './components/CheckoutPage';
 import CheckoutModal from './components/CheckoutModal';
 import UserProfileManagement from './components/UserProfileManagement';
 import CartDrawer from './components/CartDrawer';
@@ -135,7 +136,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Buy Now direct from individual product page or quickview
+  // Direct Buy Now takes user directly to the dedicated Checkout Page
   const handleDirectBuy = (product, quantity = 1) => {
     const total = Number(product.productPrice || 0) * quantity;
     setCheckoutItems([
@@ -144,14 +145,16 @@ function App() {
         productName: product.productName,
         productPrice: Number(product.productPrice),
         productImage: product.productImage,
+        category: product.category,
         quantity,
       },
     ]);
     setCheckoutTotal(total);
-    setIsCheckoutOpen(true);
+    setActiveView('checkout');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Cart checkout via Razorpay modal
+  // Cart checkout takes user directly to the dedicated Checkout Page
   const handleCartCheckout = () => {
     if (cart.length === 0) return;
     const total = cart.reduce(
@@ -161,7 +164,8 @@ function App() {
     setCheckoutItems(cart);
     setCheckoutTotal(total);
     setIsCartOpen(false);
-    setIsCheckoutOpen(true);
+    setActiveView('checkout');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Payment completed & verified via backend + Resend email sent
@@ -278,6 +282,23 @@ function App() {
           />
         )}
 
+        {/* Dedicated Checkout Page with Product Details & Razorpay Payment */}
+        {activeView === 'checkout' && (
+          <CheckoutPage
+            items={checkoutItems}
+            totalAmount={checkoutTotal}
+            user={user}
+            onPaymentSuccess={handlePaymentSuccess}
+            onBack={() => {
+              if (selectedProduct) {
+                setActiveView('product-detail');
+              } else {
+                setActiveView('products');
+              }
+            }}
+          />
+        )}
+
         {/* Order Confirmation / Success Page (Post-Razorpay Payment & Resend Dispatch) */}
         {activeView === 'order-success' && (
           <OrderSuccessPage
@@ -360,54 +381,6 @@ function App() {
           <div className="footer-brand">
             <span className="brand-name">Cartify</span>
             <p className="brand-tagline">Everyday objects, thoughtfully considered.</p>
-          </div>
-
-          <div className="footer-links">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveView('products');
-                setSelectedCategory('ALL');
-              }}
-            >
-              Catalog
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveView('products');
-                setSelectedCategory('ELECTRONICS');
-              }}
-            >
-              Electronics
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveView('products');
-                setSelectedCategory('APPAREL');
-              }}
-            >
-              Apparel
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveView('products');
-                setSelectedCategory('HOME');
-              }}
-            >
-              Living
-            </button>
-            {user?.role === 'admin' && (
-              <button
-                type="button"
-                onClick={() => setActiveView('admin')}
-                style={{ fontWeight: 600, color: 'var(--ink-900)' }}
-              >
-                Admin Portal
-              </button>
-            )}
           </div>
 
           <div className="footer-meta">

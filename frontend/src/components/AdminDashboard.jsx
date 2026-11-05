@@ -9,6 +9,8 @@ import {
   ArrowsClockwise,
   ShieldCheck,
   ArrowSquareOut,
+  CaretLeft,
+  CaretRight,
 } from '@phosphor-icons/react';
 
 function AdminDashboard({ user, token, onNavigateToStore }) {
@@ -19,6 +21,10 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
   const [products, setProducts] = useState([]);
   const [statusMessage, setStatusMessage] = useState(null);
   const [statusType, setStatusType] = useState('info');
+
+  // Pagination for Current Catalog
+  const [catalogPage, setCatalogPage] = useState(1);
+  const [catalogPageSize, setCatalogPageSize] = useState(6);
 
   // Form state for adding new product
   const [newProduct, setNewProduct] = useState({
@@ -263,6 +269,12 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
     totalInventoryStock: products.reduce((sum, p) => sum + (Number(p.quantity) || 0), 0),
     totalUsers: 2,
   };
+
+  // Current Catalog pagination computations
+  const totalCatalogPages = Math.max(1, Math.ceil(products.length / catalogPageSize));
+  const safeCatalogPage = Math.min(catalogPage, totalCatalogPages);
+  const catalogStartIndex = (safeCatalogPage - 1) * catalogPageSize;
+  const paginatedCatalog = products.slice(catalogStartIndex, catalogStartIndex + catalogPageSize);
 
   return (
     <div className="container admin-dashboard">
@@ -618,9 +630,37 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
             </form>
           </div>
 
-          {/* Current Inventory Table */}
+          {/* Current Inventory Table with Pagination */}
           <div className="admin-subpanel">
-            <h3 className="subpanel-title">Current Catalog ({products.length} Items)</h3>
+            <div className="panel-header-row" style={{ marginBottom: '14px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 className="subpanel-title">Current Catalog ({products.length} Items)</h3>
+                <p className="subpanel-desc" style={{ marginBottom: 0 }}>
+                  Showing {products.length > 0 ? catalogStartIndex + 1 : 0}–{Math.min(catalogStartIndex + catalogPageSize, products.length)} of {products.length} items &middot; Page {safeCatalogPage} of {totalCatalogPages}
+                </p>
+              </div>
+
+              {/* Page size dropdown */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px' }}>
+                <span style={{ color: 'var(--ink-500)' }}>Per page:</span>
+                <select
+                  className="status-dropdown"
+                  style={{ padding: '3px 8px', fontSize: '12px' }}
+                  value={catalogPageSize}
+                  onChange={(e) => {
+                    setCatalogPageSize(Number(e.target.value));
+                    setCatalogPage(1);
+                  }}
+                  aria-label="Items per page"
+                >
+                  <option value={4}>4</option>
+                  <option value={6}>6</option>
+                  <option value={8}>8</option>
+                  <option value={12}>12</option>
+                </select>
+              </div>
+            </div>
+
             <div className="admin-table-wrap">
               <table className="admin-table">
                 <thead>
@@ -634,7 +674,7 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p) => (
+                  {paginatedCatalog.map((p) => (
                     <tr key={p.productId}>
                       <td><span className="price-num">{p.productId}</span></td>
                       <td>
@@ -669,6 +709,46 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalCatalogPages > 1 && (
+              <div className="catalog-pagination-bar">
+                <button
+                  type="button"
+                  className="page-nav-btn"
+                  onClick={() => setCatalogPage((p) => Math.max(1, p - 1))}
+                  disabled={safeCatalogPage <= 1}
+                  aria-label="Previous Page"
+                >
+                  <CaretLeft size={14} weight="bold" />
+                  <span>Previous</span>
+                </button>
+
+                <div className="page-numbers-group">
+                  {Array.from({ length: totalCatalogPages }, (_, i) => i + 1).map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      className={`page-num-btn ${safeCatalogPage === num ? 'active' : ''}`}
+                      onClick={() => setCatalogPage(num)}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="page-nav-btn"
+                  onClick={() => setCatalogPage((p) => Math.min(totalCatalogPages, p + 1))}
+                  disabled={safeCatalogPage >= totalCatalogPages}
+                  aria-label="Next Page"
+                >
+                  <span>Next</span>
+                  <CaretRight size={14} weight="bold" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

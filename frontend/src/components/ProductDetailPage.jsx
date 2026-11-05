@@ -182,7 +182,7 @@ function ProductDetailPage({
                 onClick={handleDirectBuy}
               >
                 <CreditCard size={16} weight="bold" />
-                <span>Buy Now with Razorpay</span>
+                <span>Buy Now</span>
               </button>
             </div>
           </div>
