@@ -152,6 +152,94 @@ const sendOrderConfirmationEmail = async ({ toEmail, username, order }) => {
   }
 };
 
+// Resend Status Update Email Helper
+const sendStatusUpdateEmail = async ({ toEmail, username, order, newStatus }) => {
+  const apiKey = process.env.RESEND_API_KEY || 're_6u2BZ5An_621ZyZ3tQBFVXTPhgjBoqsb5';
+  const mailFrom = process.env.MAIL_FROM || 'noreply@sreeaditya.tech';
+
+  let headline = `Your order status is now ${newStatus}`;
+  let message = `Great news! Your Cartify order #${order.orderId} status has been updated to "${newStatus}".`;
+  let badgeColor = '#2563eb';
+
+  if (newStatus === 'Shipped') {
+    headline = 'Your Order Has Shipped!';
+    message = `Exciting news! Your order #${order.orderId} is on its way. Our courier team has dispatched your items.`;
+    badgeColor = '#2563eb';
+  } else if (newStatus === 'Delivered') {
+    headline = 'Your Order Has Been Delivered!';
+    message = `Your order #${order.orderId} has been successfully delivered. We hope you love your new essentials!`;
+    badgeColor = '#166534';
+  }
+
+  const emailHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"/></head>
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f7f7f8; margin: 0; padding: 24px;">
+      <div style="max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 8px; border: 1px solid #e5e5e7; padding: 32px; color: #171717;">
+        <div style="border-bottom: 1px solid #e5e5e7; padding-bottom: 20px; margin-bottom: 24px;">
+          <h1 style="font-size: 22px; margin: 0; letter-spacing: -0.03em;">Cartify</h1>
+          <p style="margin: 4px 0 0; color: #737373; font-size: 13px;">Shipment Update &middot; #${order.orderId}</p>
+        </div>
+
+        <h2 style="font-size: 18px; color: #171717; margin: 0 0 12px;">${headline}</h2>
+        <p style="font-size: 14px; color: #525252; line-height: 1.5; margin: 0 0 20px;">
+          Hello <strong>${username || 'Customer'}</strong>,<br/><br/>
+          ${message}
+        </p>
+
+        <div style="background: #fafafa; border: 1px solid #eeeeee; border-radius: 6px; padding: 16px; margin-bottom: 24px;">
+          <table style="width: 100%; font-size: 13px; color: #525252;">
+            <tr>
+              <td><strong>Order ID:</strong></td>
+              <td style="text-align: right; color: #171717;">${order.orderId}</td>
+            </tr>
+            <tr>
+              <td><strong>Updated Status:</strong></td>
+              <td style="text-align: right; color: ${badgeColor}; font-weight: 700;">${newStatus}</td>
+            </tr>
+            <tr>
+              <td><strong>Delivery Destination:</strong></td>
+              <td style="text-align: right; color: #171717;">${order.shippingAddress?.city || 'Default Location'}</td>
+            </tr>
+          </table>
+        </div>
+
+        <p style="font-size: 13px; color: #737373; margin: 0 0 20px;">
+          You can track your order live anytime in your Cartify account under <strong>My Orders</strong>.
+        </p>
+
+        <div style="border-top: 1px solid #e5e5e7; padding-top: 20px; font-size: 12px; color: #737373; text-align: center;">
+          <p style="margin: 0 0 4px;">Thank you for shopping with Cartify.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: `Cartify <${mailFrom}>`,
+        to: [toEmail],
+        subject: `Update: Order #${order.orderId} is now ${newStatus} - Cartify`,
+        html: emailHtml,
+      }),
+    });
+    const data = await res.json();
+    console.log(`[Resend Status Update Email] Dispatched to ${toEmail}:`, data);
+    return { success: res.ok, data };
+  } catch (err) {
+    console.error('[Resend Status Update Email Error]:', err.message);
+    return { success: false, error: err.message };
+  }
+};
+
 // 1. POST /api/payments/create-order
 router.post('/create-order', authenticateRequest, async (req, res) => {
   try {
@@ -350,8 +438,19 @@ router.patch('/admin/:orderId/status', verifyAdmin, async (req, res) => {
     }
 
     if (fulfillmentStatus) {
+      const oldStatus = order.fulfillmentStatus;
       order.fulfillmentStatus = fulfillmentStatus;
       await order.save();
+
+      // If status changed and user has an email, dispatch shipment notification
+      if (order.user?.emailId && oldStatus !== fulfillmentStatus) {
+        sendStatusUpdateEmail({
+          toEmail: order.user.emailId,
+          username: order.user.username,
+          order,
+          newStatus: fulfillmentStatus,
+        }).catch((e) => console.error('[Order Status Email Error]:', e.message));
+      }
     }
 
     return res.status(200).json({
