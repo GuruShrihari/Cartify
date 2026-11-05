@@ -5,14 +5,14 @@ import UserLogin from './components/UserLogin';
 import ProductCatalog from './components/ProductCatalog';
 import UserProfileManagement from './components/UserProfileManagement';
 import CartDrawer from './components/CartDrawer';
-import { Sparkle } from '@phosphor-icons/react';
+import { Check } from '@phosphor-icons/react';
 import './App.css';
 
 function App() {
-  // Default view is 'products' so guests can browse freely without login (Flipkart/Amazon style)
+  // Default view is 'products' so guests can browse freely without login
   const [activeView, setActiveView] = useState('products');
 
-  // Synchronous state initialization from localStorage (avoids cascading effect re-renders)
+  // Synchronous state initialization from localStorage
   const [token, setToken] = useState(() => localStorage.getItem('cartify_token') || null);
   const [user, setUser] = useState(() => {
     try {
@@ -52,7 +52,7 @@ function App() {
     setToastMessage(message);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3000);
+    }, 2500);
   };
 
   const handleAddToCart = (product) => {
@@ -67,7 +67,7 @@ function App() {
       }
       return [...prevCart, { ...product, quantity: 1 }];
     });
-    showToast(`Added “${product.productName}” to your cart!`);
+    showToast(`Added “${product.productName}” to your bag`);
   };
 
   const handleUpdateQuantity = (productId, newQuantity) => {
@@ -90,16 +90,16 @@ function App() {
     if (!user) {
       setIsCartOpen(false);
       setActiveView('login');
-      showToast('Please sign in or create an account to complete checkout.');
+      showToast('Please sign in or create an account to checkout.');
     } else {
       const total = cart.reduce(
         (sum, item) => sum + Number(item.productPrice || 0) * item.quantity,
         0
       );
       alert(
-        `🎉 Order Placed Successfully!\n\nThank you, ${user.username}!\nYour order of ${cart.length} item(s) totaling ₹${total.toLocaleString(
+        `Order Confirmed\n\nThank you, ${user.username}.\nYour order of ${cart.length} item(s) (₹${total.toLocaleString(
           'en-IN'
-        )} will be delivered to your registered address in 24-48 hours.`
+        )}) is being prepared for dispatch.`
       );
       setCart([]);
       setIsCartOpen(false);
@@ -112,7 +112,7 @@ function App() {
     localStorage.setItem('cartify_token', authToken);
     localStorage.setItem('cartify_user', JSON.stringify(loggedInUser));
     setActiveView('products');
-    showToast(`Welcome back, ${loggedInUser.username}!`);
+    showToast(`Welcome back, ${loggedInUser.username}`);
   };
 
   const handleLogout = () => {
@@ -121,19 +121,19 @@ function App() {
     localStorage.removeItem('cartify_token');
     localStorage.removeItem('cartify_user');
     setActiveView('products');
-    showToast('You have been signed out.');
+    showToast('Signed out');
   };
 
   const handleUpdateUser = (updatedFields) => {
     const updated = { ...user, ...updatedFields };
     setUser(updated);
     localStorage.setItem('cartify_user', JSON.stringify(updated));
-    showToast('Your profile details were updated.');
+    showToast('Profile updated');
   };
 
   const handleAccountDeleted = () => {
     handleLogout();
-    showToast('Your registration record has been removed.');
+    showToast('Account record removed');
   };
 
   const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -142,38 +142,11 @@ function App() {
     <div className="app-container">
       {/* Toast Notification */}
       {toastMessage && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            zIndex: 1000,
-            background: '#111827',
-            color: '#f9fafb',
-            padding: '12px 20px',
-            borderRadius: '8px',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            fontSize: '13.5px',
-            fontWeight: 600,
-            animation: 'fadeIn 0.2s ease-out',
-            border: '1px solid #374151',
-          }}
-        >
-          <Sparkle size={18} weight="fill" color="var(--accent-gold)" />
+        <div className="minimal-toast">
+          <Check size={16} weight="bold" />
           <span>{toastMessage}</span>
         </div>
       )}
-
-      {/* Top Announcement Bar (Flipkart / Amazon Sale Banner) */}
-      <div className="top-notice">
-        <span className="highlight-badge">Super Savings</span>
-        <span>
-          Big Billion Day Deals Live &nbsp;·&nbsp; Free Nationwide Delivery on ₹499+ &nbsp;·&nbsp; Extra 10% Instant Discount on UPI
-        </span>
-      </div>
 
       {/* Main Header / Navbar */}
       <Navbar
@@ -191,7 +164,7 @@ function App() {
 
       {/* Main Views Container */}
       <main>
-        {/* Products View: accessible by ALL users without requiring login! */}
+        {/* Products View: accessible by ALL users without login */}
         {activeView === 'products' && (
           <ProductCatalog
             token={token}
@@ -249,58 +222,24 @@ function App() {
         user={user}
       />
 
-      {/* Comprehensive E-Commerce Footer (Amazon & Flipkart Style) */}
+      {/* Minimalist Footer */}
       <footer className="footer">
-        <div className="footer-top">
-          <div className="footer-col">
-            <div className="footer-col-title" style={{ fontSize: '16px', color: 'var(--accent-gold)' }}>
-              Cartify
-            </div>
-            <p>
-              India’s trusted marketplace for everyday finds, premium tech, electronics, fashion, lifestyle, and modern home decor. Built with high standards of quality and verified authenticity.
-            </p>
-            <div style={{ display: 'flex', gap: '12px', marginTop: '16px', color: '#e5e7eb', fontSize: '13px' }}>
-              <span>✓ 100% Original</span>
-              <span>✓ 7-Day Returns</span>
-              <span>✓ Safe Payments</span>
-            </div>
+        <div className="footer-inner">
+          <div className="footer-brand">
+            <span className="brand-name">Cartify</span>
+            <p className="brand-tagline">Everyday objects, thoughtfully considered.</p>
           </div>
 
-          <div className="footer-col">
-            <div className="footer-col-title">About & Info</div>
-            <ul>
-              <li><a href="#about" onClick={(e) => { e.preventDefault(); setActiveView('products'); }}>About Cartify</a></li>
-              <li><a href="#careers" onClick={(e) => { e.preventDefault(); setActiveView('products'); }}>Careers</a></li>
-              <li><a href="#press" onClick={(e) => { e.preventDefault(); setActiveView('products'); }}>Press Releases</a></li>
-              <li><a href="#science" onClick={(e) => { e.preventDefault(); setActiveView('products'); }}>Cartify Science</a></li>
-            </ul>
+          <div className="footer-links">
+            <button type="button" onClick={() => { setActiveView('products'); setSelectedCategory('ALL'); }}>Catalog</button>
+            <button type="button" onClick={() => { setActiveView('products'); setSelectedCategory('ELECTRONICS'); }}>Electronics</button>
+            <button type="button" onClick={() => { setActiveView('products'); setSelectedCategory('APPAREL'); }}>Apparel</button>
+            <button type="button" onClick={() => { setActiveView('products'); setSelectedCategory('HOME'); }}>Living</button>
           </div>
 
-          <div className="footer-col">
-            <div className="footer-col-title">Help & Support</div>
-            <ul>
-              <li><a href="#payments" onClick={(e) => { e.preventDefault(); setIsCartOpen(true); }}>Payments & Pricing</a></li>
-              <li><a href="#shipping" onClick={(e) => { e.preventDefault(); setActiveView('products'); }}>Shipping Policy</a></li>
-              <li><a href="#cancellation" onClick={(e) => { e.preventDefault(); setActiveView('products'); }}>Cancellation & Returns</a></li>
-              <li><a href="#faq" onClick={(e) => { e.preventDefault(); setActiveView('products'); }}>Frequently Asked Questions</a></li>
-            </ul>
+          <div className="footer-meta">
+            &copy; {new Date().getFullYear()} Cartify. Designed with quiet restraint.
           </div>
-
-          <div className="footer-col">
-            <div className="footer-col-title">Consumer Policy</div>
-            <ul>
-              <li><a href="#privacy" onClick={(e) => { e.preventDefault(); setActiveView('products'); }}>Security & Privacy</a></li>
-              <li><a href="#terms" onClick={(e) => { e.preventDefault(); setActiveView('products'); }}>Terms of Use</a></li>
-              <li><a href="#grievance" onClick={(e) => { e.preventDefault(); setActiveView('products'); }}>Grievance Redressal</a></li>
-              <li><a href="#sitemap" onClick={(e) => { e.preventDefault(); setActiveView('products'); }}>Sitemap</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="footer-bottom">
-          <p>
-            © {new Date().getFullYear()} <strong>Cartify Inc.</strong> &mdash; Everyday shopping made simple. Inspired by leading e-commerce standards.
-          </p>
         </div>
       </footer>
     </div>

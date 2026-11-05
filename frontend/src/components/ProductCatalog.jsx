@@ -1,64 +1,14 @@
 import { useState, useEffect } from 'react';
 import ProductCard from './ProductCard';
 import {
-  Lightning,
-  Truck,
-  ShieldCheck,
-  ArrowCounterClockwise,
-  CreditCard,
-  CaretRight,
-  CaretLeft,
   X,
   Plus,
   Minus,
-  ShoppingCart,
-  Funnel,
+  ShoppingBag,
   ArrowsClockwise,
+  ArrowRight,
   Star,
 } from '@phosphor-icons/react';
-
-// Department icon mapping
-const DEPT_ICONS = {
-  ALL: '🏷️',
-  ELECTRONICS: '⚡',
-  FOOTWEAR: '👟',
-  ACCESSORIES: '⌚',
-  BAGS: '🎒',
-  AUDIO: '🎧',
-  APPAREL: '👕',
-  HOME: '🏡',
-  BEAUTY: '✨',
-};
-
-const HERO_SLIDES = [
-  {
-    id: 1,
-    badge: '⚡ Big Electronics Festival',
-    title: 'Flagship Tech & Pro Audio at Unbeatable Prices',
-    subtitle: 'Save up to 50% on Ultra Laptops, 4K Mirrorless Cameras & Studio Headphones.',
-    cta: 'Explore Tech Deals',
-    bg: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #334155 100%)',
-    category: 'ELECTRONICS',
-  },
-  {
-    id: 2,
-    badge: '🔥 Season Fashion Drop',
-    title: 'Elevate Your Everyday Look & Footwear',
-    subtitle: 'Classic aviators, chronograph timepieces, lightweight sneakers & weather-proof bags.',
-    cta: 'Shop Lifestyle',
-    bg: 'linear-gradient(135deg, #1c1917 0%, #292524 60%, #44403c 100%)',
-    category: 'FOOTWEAR',
-  },
-  {
-    id: 3,
-    badge: '🏡 Modern Scandinavian Living',
-    title: 'Curated Essentials for Your Home & Workspace',
-    subtitle: 'Hand-glazed stoneware, warm dimmable lamps and luxury artisanal fragrances.',
-    cta: 'Discover Home',
-    bg: 'linear-gradient(135deg, #0c4a6e 0%, #075985 60%, #0369a1 100%)',
-    category: 'HOME',
-  },
-];
 
 function ProductCatalog({
   token,
@@ -78,43 +28,9 @@ function ProductCatalog({
   const [sortBy, setSortBy] = useState('featured');
   const [inStockOnly, setInStockOnly] = useState(false);
 
-  // Hero Slider State
-  const [currentSlide, setCurrentSlide] = useState(0);
-
   // Quick View Modal State
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [modalQuantity, setModalQuantity] = useState(1);
-
-  // Countdown timer for Deal of the Day (counts down from 8 hours)
-  const [timeLeft, setTimeLeft] = useState({
-    hours: 5,
-    minutes: 42,
-    seconds: 19,
-  });
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        }
-        return { hours: 8, minutes: 0, seconds: 0 };
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Auto-advance hero slides
-  useEffect(() => {
-    const slideInterval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
-    }, 5500);
-    return () => clearInterval(slideInterval);
-  }, []);
 
   // Load products on mount or when token/user changes
   useEffect(() => {
@@ -188,13 +104,11 @@ function ProductCatalog({
     }
   };
 
-  // Extract unique categories
+  // Categories list
   const categories = ['ALL', ...Array.from(new Set(products.map((p) => p.category)))];
-
-  // Active category filter
   const activeCategory = selectedCategory || 'ALL';
 
-  // Filter products
+  // Filter products by selected category
   const categoryProducts =
     activeCategory === 'ALL'
       ? products
@@ -229,8 +143,8 @@ function ProductCatalog({
     return 0; // featured default
   });
 
-  // Curated collections for storefront sections
-  const dealOfTheDayProducts = products.slice(0, 5);
+  // Dedicated sections
+  const featuredProducts = products.slice(0, 4);
   const electronicsProducts = products.filter(
     (p) => p.category === 'ELECTRONICS' || p.category === 'AUDIO'
   );
@@ -277,12 +191,11 @@ function ProductCatalog({
   };
 
   return (
-    <div>
-      {/* 1. Department Quick-Nav Bar (Flipkart Style Icons & Badges) */}
-      <div className="dept-strip">
+    <div className="catalog-wrapper">
+      {/* Minimalist Department Filter Bar */}
+      <nav className="dept-strip" aria-label="Product categories">
         <div className="dept-inner">
           {categories.map((cat) => {
-            const icon = DEPT_ICONS[cat] || '✨';
             const isActive = activeCategory === cat;
             return (
               <button
@@ -291,21 +204,18 @@ function ProductCatalog({
                 className={`dept-pill ${isActive ? 'active' : ''}`}
                 onClick={() => {
                   if (onSelectCategory) onSelectCategory(cat);
-                  const catalogEl = document.getElementById('catalog-grid-section');
+                  const catalogEl = document.getElementById('all-products-section');
                   if (catalogEl && cat !== 'ALL') {
                     catalogEl.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
               >
-                <span className="dept-pill-icon">{icon}</span>
-                <span className="dept-pill-label">
-                  {cat === 'ALL' ? 'All Deals' : cat}
-                </span>
+                {cat === 'ALL' ? 'All' : cat.charAt(0) + cat.slice(1).toLowerCase()}
               </button>
             );
           })}
         </div>
-      </div>
+      </nav>
 
       <div className="container">
         {/* Error Notification */}
@@ -316,164 +226,47 @@ function ProductCatalog({
               type="button"
               className="refresh-btn"
               onClick={handleRefresh}
-              style={{ height: '30px', padding: '0 10px' }}
+              style={{ height: '28px', padding: '0 10px' }}
             >
               Retry
             </button>
           </div>
         )}
 
-        {/* 2. Hero Deals Banner Carousel (Amazon/Flipkart Deal Slider) */}
+        {/* Minimalist Editorial Hero (Clean & Restrained) */}
         {!searchQuery && activeCategory === 'ALL' && (
-          <div className="hero-slider-wrap">
-            {HERO_SLIDES.map((slide, index) => {
-              if (index !== currentSlide) return null;
-              return (
-                <div
-                  key={slide.id}
-                  className="hero-slide"
-                  style={{ background: slide.bg }}
-                >
-                  <div className="hero-content">
-                    <span className="hero-badge">{slide.badge}</span>
-                    <h1 className="hero-title">{slide.title}</h1>
-                    <p className="hero-subtitle">{slide.subtitle}</p>
-                    <button
-                      type="button"
-                      className="hero-cta"
-                      onClick={() => {
-                        if (onSelectCategory) onSelectCategory(slide.category);
-                        const el = document.getElementById('catalog-grid-section');
-                        if (el) el.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                    >
-                      <span>{slide.cta}</span>
-                      <CaretRight size={18} weight="bold" />
-                    </button>
-                  </div>
-
-                  {/* Slider Arrows */}
-                  <button
-                    type="button"
-                    className="hero-arrow prev"
-                    onClick={() =>
-                      setCurrentSlide(
-                        (prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length
-                      )
-                    }
-                    aria-label="Previous slide"
-                  >
-                    <CaretLeft size={22} weight="bold" />
-                  </button>
-                  <button
-                    type="button"
-                    className="hero-arrow next"
-                    onClick={() =>
-                      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)
-                    }
-                    aria-label="Next slide"
-                  >
-                    <CaretRight size={22} weight="bold" />
-                  </button>
-
-                  {/* Dot Indicators */}
-                  <div className="hero-controls">
-                    {HERO_SLIDES.map((_, i) => (
-                      <div
-                        key={i}
-                        className={`hero-dot ${i === currentSlide ? 'active' : ''}`}
-                        onClick={() => setCurrentSlide(i)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <header className="catalog-hero">
+            <span className="hero-kicker">Catalog &middot; Everyday Essentials</span>
+            <h1 className="hero-heading">Thoughtfully designed for everyday living.</h1>
+            <p className="hero-subtext">
+              A curated collection of electronics, apparel, and home goods focused on utility, craftsmanship, and enduring simplicity.
+            </p>
+          </header>
         )}
 
-        {/* 3. Flipkart / Amazon Trust Badges Strip */}
-        <div className="trust-strip">
-          <div className="trust-item">
-            <div className="trust-icon-box">
-              <Truck size={24} weight="fill" />
-            </div>
-            <div>
-              <div className="trust-title">Free Nationwide Delivery</div>
-              <div className="trust-desc">On all orders above ₹499</div>
-            </div>
-          </div>
-
-          <div className="trust-item">
-            <div className="trust-icon-box" style={{ background: '#fef3c7', color: '#d97706' }}>
-              <ShieldCheck size={24} weight="fill" />
-            </div>
-            <div>
-              <div className="trust-title">100% Genuine & Assured</div>
-              <div className="trust-desc">Direct from verified brands</div>
-            </div>
-          </div>
-
-          <div className="trust-item">
-            <div className="trust-icon-box" style={{ background: '#ecfdf5', color: '#059669' }}>
-              <ArrowCounterClockwise size={24} weight="bold" />
-            </div>
-            <div>
-              <div className="trust-title">7-Day Easy Returns</div>
-              <div className="trust-desc">Hassle-free replacement policy</div>
-            </div>
-          </div>
-
-          <div className="trust-item">
-            <div className="trust-icon-box" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
-              <CreditCard size={24} weight="fill" />
-            </div>
-            <div>
-              <div className="trust-title">Secure & Flexible Pay</div>
-              <div className="trust-desc">UPI, Cards, EMI & COD available</div>
-            </div>
-          </div>
-        </div>
-
-        {/* 4. Section: ⚡ Lightning Deals of the Day (Live Ticking Countdown!) */}
-        {!searchQuery && activeCategory === 'ALL' && dealOfTheDayProducts.length > 0 && (
-          <section className="product-section" id="flash-deals-section">
+        {/* SECTION 1: Curated Highlights */}
+        {!searchQuery && activeCategory === 'ALL' && featuredProducts.length > 0 && (
+          <section className="product-section" id="featured-section">
             <div className="section-header">
-              <div className="section-title-wrap">
-                <span className="section-title-icon" style={{ color: '#e11d48' }}>
-                  <Lightning size={26} weight="fill" />
-                </span>
-                <div>
-                  <h2 className="section-title">Deals of the Day</h2>
-                  <p className="section-subtitle">
-                    Top picks with up to 50% discount · Limited time offers
-                  </p>
-                </div>
+              <div>
+                <h2 className="section-title">Curated Selection</h2>
+                <p className="section-subtitle">Key essentials from this season’s collection</p>
               </div>
-
-              {/* Countdown Timer */}
-              <div className="deal-timer-wrap">
-                <span className="deal-timer-label">
-                  <Lightning size={14} weight="fill" /> Ends in:
-                </span>
-                <div className="deal-timer-digits">
-                  <span className="timer-box">
-                    {String(timeLeft.hours).padStart(2, '0')}h
-                  </span>
-                  <span>:</span>
-                  <span className="timer-box">
-                    {String(timeLeft.minutes).padStart(2, '0')}m
-                  </span>
-                  <span>:</span>
-                  <span className="timer-box">
-                    {String(timeLeft.seconds).padStart(2, '0')}s
-                  </span>
-                </div>
-              </div>
+              <button
+                type="button"
+                className="section-view-all"
+                onClick={() => {
+                  const el = document.getElementById('all-products-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                <span>View all products</span>
+                <ArrowRight size={14} weight="bold" />
+              </button>
             </div>
 
-            <div className="horizontal-products-row">
-              {dealOfTheDayProducts.map((product) => (
+            <div className="product-grid">
+              {featuredProducts.map((product) => (
                 <ProductCard
                   key={product.productId}
                   product={product}
@@ -486,37 +279,30 @@ function ProductCatalog({
           </section>
         )}
 
-        {/* 5. Section: 🔥 Electronics & Audio Showcase */}
+        {/* SECTION 2: Electronics & Audio */}
         {!searchQuery && activeCategory === 'ALL' && electronicsProducts.length > 0 && (
           <section className="product-section" id="electronics-section">
             <div className="section-header">
-              <div className="section-title-wrap">
-                <span className="section-title-icon" style={{ color: '#2563eb' }}>
-                  ⚡
-                </span>
-                <div>
-                  <h2 className="section-title">Best in Electronics & Pro Audio</h2>
-                  <p className="section-subtitle">
-                    Laptops, mechanical keyboards, headphones & cameras
-                  </p>
-                </div>
+              <div>
+                <h2 className="section-title">Electronics & Devices</h2>
+                <p className="section-subtitle">Audio, portable computers, and workspace tools</p>
               </div>
               <button
                 type="button"
                 className="section-view-all"
                 onClick={() => {
                   if (onSelectCategory) onSelectCategory('ELECTRONICS');
-                  const el = document.getElementById('catalog-grid-section');
+                  const el = document.getElementById('all-products-section');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
-                <span>View all in Electronics</span>
-                <CaretRight size={16} weight="bold" />
+                <span>Browse {electronicsProducts.length} items</span>
+                <ArrowRight size={14} weight="bold" />
               </button>
             </div>
 
-            <div className="horizontal-products-row">
-              {electronicsProducts.map((product) => (
+            <div className="product-grid">
+              {electronicsProducts.slice(0, 4).map((product) => (
                 <ProductCard
                   key={product.productId}
                   product={product}
@@ -529,35 +315,30 @@ function ProductCatalog({
           </section>
         )}
 
-        {/* 6. Section: 👟 Lifestyle, Fashion & Footwear */}
+        {/* SECTION 3: Apparel & Everyday Wear */}
         {!searchQuery && activeCategory === 'ALL' && fashionProducts.length > 0 && (
           <section className="product-section" id="fashion-section">
             <div className="section-header">
-              <div className="section-title-wrap">
-                <span className="section-title-icon">👟</span>
-                <div>
-                  <h2 className="section-title">Fashion, Watches & Accessories</h2>
-                  <p className="section-subtitle">
-                    Everyday styles crafted for comfort and clean aesthetics
-                  </p>
-                </div>
+              <div>
+                <h2 className="section-title">Apparel & Carry</h2>
+                <p className="section-subtitle">Footwear, garments, timepieces, and daypacks</p>
               </div>
               <button
                 type="button"
                 className="section-view-all"
                 onClick={() => {
                   if (onSelectCategory) onSelectCategory('APPAREL');
-                  const el = document.getElementById('catalog-grid-section');
+                  const el = document.getElementById('all-products-section');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
-                <span>Explore Fashion</span>
-                <CaretRight size={16} weight="bold" />
+                <span>Browse {fashionProducts.length} items</span>
+                <ArrowRight size={14} weight="bold" />
               </button>
             </div>
 
-            <div className="horizontal-products-row">
-              {fashionProducts.map((product) => (
+            <div className="product-grid">
+              {fashionProducts.slice(0, 4).map((product) => (
                 <ProductCard
                   key={product.productId}
                   product={product}
@@ -570,35 +351,30 @@ function ProductCatalog({
           </section>
         )}
 
-        {/* 7. Section: 🏡 Home & Living Essentials */}
+        {/* SECTION 4: Objects & Living */}
         {!searchQuery && activeCategory === 'ALL' && homeProducts.length > 0 && (
           <section className="product-section" id="home-section">
             <div className="section-header">
-              <div className="section-title-wrap">
-                <span className="section-title-icon">🏡</span>
-                <div>
-                  <h2 className="section-title">Home Decor & Fragrances</h2>
-                  <p className="section-subtitle">
-                    Minimal stoneware, ambient lighting & luxury scents
-                  </p>
-                </div>
+              <div>
+                <h2 className="section-title">Living & Objects</h2>
+                <p className="section-subtitle">Stoneware, desk lighting, ceramics, and personal scents</p>
               </div>
               <button
                 type="button"
                 className="section-view-all"
                 onClick={() => {
                   if (onSelectCategory) onSelectCategory('HOME');
-                  const el = document.getElementById('catalog-grid-section');
+                  const el = document.getElementById('all-products-section');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
-                <span>View Home Collection</span>
-                <CaretRight size={16} weight="bold" />
+                <span>Browse {homeProducts.length} items</span>
+                <ArrowRight size={14} weight="bold" />
               </button>
             </div>
 
-            <div className="horizontal-products-row">
-              {homeProducts.map((product) => (
+            <div className="product-grid">
+              {homeProducts.slice(0, 4).map((product) => (
                 <ProductCard
                   key={product.productId}
                   product={product}
@@ -611,78 +387,77 @@ function ProductCatalog({
           </section>
         )}
 
-        {/* 8. Main Catalog Section with Filter & Sort Toolbar */}
-        <div id="catalog-grid-section" style={{ paddingTop: '8px' }}>
+        {/* SECTION 5: All Products Grid with Clean Toolbar */}
+        <section className="product-section" id="all-products-section" style={{ border: 'none', padding: 0 }}>
           <div className="catalog-toolbar">
             <div className="catalog-info">
-              <Funnel size={18} weight="bold" color="var(--accent-blue)" />
               <span>
                 {searchQuery.trim() ? (
                   <>
-                    Results for “<strong>{searchQuery.trim()}</strong>” ·{' '}
+                    Search for “<strong>{searchQuery.trim()}</strong>” &middot;{' '}
                   </>
                 ) : activeCategory !== 'ALL' ? (
                   <>
-                    Department: <strong>{activeCategory}</strong> ·{' '}
+                    <strong>{activeCategory}</strong> &middot;{' '}
                   </>
                 ) : (
-                  <>Showing All Products · </>
+                  <>All items &middot; </>
                 )}
-                <strong>{displayedProducts.length}</strong> items
+                <strong>{displayedProducts.length}</strong> available
               </span>
             </div>
 
             <div className="catalog-controls">
-              {/* Category Dropdown */}
+              {/* Category Filter */}
               <select
                 className="filter-select"
                 value={activeCategory}
                 onChange={(e) => onSelectCategory && onSelectCategory(e.target.value)}
-                aria-label="Department filter"
+                aria-label="Filter by department"
               >
                 <option value="ALL">All Departments</option>
                 {categories
                   .filter((c) => c !== 'ALL')
                   .map((cat) => (
                     <option key={cat} value={cat}>
-                      {cat}
+                      {cat.charAt(0) + cat.slice(1).toLowerCase()}
                     </option>
                   ))}
               </select>
 
-              {/* Sort By Dropdown */}
+              {/* Sort By */}
               <select
                 className="filter-select"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 aria-label="Sort products"
               >
-                <option value="featured">Sort by: Featured</option>
+                <option value="featured">Featured</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
-                <option value="stock">Availability / Stock</option>
+                <option value="stock">In Stock First</option>
               </select>
 
               {/* In-Stock Toggle */}
-              <label className="instock-toggle" title="Only display items with stock available">
+              <label className="instock-toggle">
                 <input
                   type="checkbox"
                   checked={inStockOnly}
                   onChange={(e) => setInStockOnly(e.target.checked)}
                 />
-                <span>In Stock Only</span>
+                <span>In stock</span>
               </label>
 
-              {/* Refresh Catalog */}
+              {/* Refresh */}
               <button
                 type="button"
                 className="refresh-btn"
                 onClick={handleRefresh}
                 disabled={isLoading}
-                title="Refresh product list from server"
+                title="Refresh product list"
               >
                 <ArrowsClockwise
-                  size={16}
+                  size={14}
                   weight="bold"
                   className={isLoading ? 'animate-spin' : ''}
                 />
@@ -693,14 +468,14 @@ function ProductCatalog({
 
           {/* Skeleton Loader */}
           {isLoading && (
-            <div className="skeleton-grid" aria-label="Loading products catalog">
+            <div className="skeleton-grid" aria-label="Loading catalog">
               {Array.from({ length: 8 }, (_, i) => (
                 <div key={i} className="skeleton-card" />
               ))}
             </div>
           )}
 
-          {/* Product Grid */}
+          {/* Main Grid */}
           {!isLoading && displayedProducts.length > 0 && (
             <div className="product-grid">
               {displayedProducts.map((product) => (
@@ -718,47 +493,43 @@ function ProductCatalog({
           {/* Empty Search State */}
           {!isLoading && products.length > 0 && displayedProducts.length === 0 && (
             <div className="empty-state">
-              <div className="empty-icon">🔍</div>
-              <h3 className="empty-title">No matching products found</h3>
+              <h3 className="empty-title">No items found</h3>
               <p className="empty-desc">
-                We couldn't find anything matching your search filters. Try clearing filters or exploring all departments.
+                No products match the selected criteria. Try adjusting your query or filters.
               </p>
               <button
                 type="button"
                 className="btn-solid"
-                style={{ width: 'auto', padding: '0 24px', margin: '0 auto' }}
+                style={{ width: 'auto', padding: '0 20px', margin: '0 auto' }}
                 onClick={() => {
                   if (onSelectCategory) onSelectCategory('ALL');
                   setInStockOnly(false);
                 }}
               >
-                View All Products
+                Reset filters
               </button>
             </div>
           )}
 
-          {/* Empty Database State */}
+          {/* Empty Catalog State */}
           {!isLoading && products.length === 0 && !errorMessage && (
             <div className="empty-state">
-              <div className="empty-icon">📦</div>
-              <h3 className="empty-title">Product Catalog is Empty</h3>
-              <p className="empty-desc">
-                The database does not contain any products yet. Click below to seed the curated catalog with high-res Unsplash items.
-              </p>
+              <h3 className="empty-title">No Products Available</h3>
+              <p className="empty-desc">The catalog is currently empty.</p>
               <button
                 type="button"
                 className="btn-solid"
-                style={{ width: 'auto', padding: '0 24px', margin: '0 auto' }}
+                style={{ width: 'auto', padding: '0 20px', margin: '0 auto' }}
                 onClick={handleSeedDefaults}
               >
-                Load Curated Products
+                Load catalog products
               </button>
             </div>
           )}
-        </div>
+        </section>
       </div>
 
-      {/* 9. Quick View Modal (Flipkart / Amazon Product Details Preview) */}
+      {/* Minimalist Quick View Modal */}
       {quickViewProduct && (
         <div
           className="modal-overlay"
@@ -771,12 +542,12 @@ function ProductCatalog({
               type="button"
               className="modal-close-btn"
               onClick={() => setQuickViewProduct(null)}
-              aria-label="Close product modal"
+              aria-label="Close"
             >
-              <X size={20} weight="bold" />
+              <X size={18} weight="bold" />
             </button>
 
-            {/* Left Column: Image */}
+            {/* Left: Image */}
             <div className="modal-image-col">
               {quickViewProduct.productImage ? (
                 <img
@@ -784,107 +555,67 @@ function ProductCatalog({
                   alt={quickViewProduct.productName}
                 />
               ) : (
-                <div className="product-initials" style={{ width: 120, height: 120, fontSize: 40 }}>
+                <div className="product-initials" style={{ width: 100, height: 100, fontSize: 32 }}>
                   {quickViewProduct.productName.slice(0, 2).toUpperCase()}
                 </div>
               )}
             </div>
 
-            {/* Right Column: Details & CTA */}
+            {/* Right: Details */}
             <div className="modal-details-col">
               <div className="modal-dept">
-                {quickViewProduct.category} · Product #{quickViewProduct.productId}
+                {quickViewProduct.category} &middot; SKU #{quickViewProduct.productId}
               </div>
               <h2 className="modal-title">{quickViewProduct.productName}</h2>
 
-              {/* Rating & Assured */}
-              <div className="modal-ratings-row">
-                <span className="rating-badge" style={{ padding: '3px 8px', fontSize: '13px' }}>
-                  4.5 <Star size={12} weight="fill" />
+              <div className="modal-meta">
+                <span className="card-price price-num" style={{ fontSize: '24px' }}>
+                  ₹{Number(quickViewProduct.productPrice).toLocaleString('en-IN')}
                 </span>
-                <span className="review-count">Verified Customer Ratings</span>
-                <span className="assured-pill">
-                  <ShieldCheck size={14} weight="fill" /> Cartify Assured
+                <span className="card-rating" style={{ fontSize: '13px' }}>
+                  <Star size={13} weight="fill" /> 4.6 &middot; In stock ({quickViewProduct.quantity})
                 </span>
               </div>
 
-              {/* Pricing Box */}
-              <div className="modal-pricing-box">
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-                  <span className="card-current-price price-num" style={{ fontSize: '26px' }}>
-                    ₹{Number(quickViewProduct.productPrice).toLocaleString('en-IN')}
-                  </span>
-                  <span className="card-mrp-price price-num">
-                    ₹{Math.round(quickViewProduct.productPrice * 1.35).toLocaleString('en-IN')}
-                  </span>
-                  <span className="card-discount-tag" style={{ fontSize: '14px' }}>
-                    35% OFF
-                  </span>
-                </div>
-                <div style={{ fontSize: '12px', color: '#16a34a', marginTop: '4px', fontWeight: 600 }}>
-                  Special price inclusive of all taxes · Free Delivery
-                </div>
-              </div>
-
-              {/* Description */}
               <p className="modal-desc">{quickViewProduct.description}</p>
 
-              {/* Stock Status & Quantity Stepper */}
+              {/* Quantity Stepper */}
               <div className="modal-qty-row">
-                <div>
-                  <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>
-                    Quantity
-                  </div>
-                  <div className="qty-stepper">
-                    <button
-                      type="button"
-                      className="qty-btn"
-                      onClick={() => setModalQuantity((q) => Math.max(1, q - 1))}
-                    >
-                      <Minus size={14} weight="bold" />
-                    </button>
-                    <span className="qty-display price-num">{modalQuantity}</span>
-                    <button
-                      type="button"
-                      className="qty-btn"
-                      onClick={() => setModalQuantity((q) => q + 1)}
-                    >
-                      <Plus size={14} weight="bold" />
-                    </button>
-                  </div>
-                </div>
-
-                <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-                  <div style={{ fontSize: '12px', color: '#6b7280' }}>Availability</div>
-                  <div
-                    style={{
-                      fontSize: '13.5px',
-                      fontWeight: 700,
-                      color: Number(quickViewProduct.quantity) > 0 ? '#16a34a' : '#dc2626',
-                    }}
+                <span style={{ fontSize: '13px', color: 'var(--ink-500)' }}>Quantity</span>
+                <div className="qty-stepper">
+                  <button
+                    type="button"
+                    className="qty-btn"
+                    onClick={() => setModalQuantity((q) => Math.max(1, q - 1))}
                   >
-                    {Number(quickViewProduct.quantity) > 0
-                      ? `In Stock (${quickViewProduct.quantity} units)`
-                      : 'Out of Stock'}
-                  </div>
+                    <Minus size={13} weight="bold" />
+                  </button>
+                  <span className="qty-display price-num">{modalQuantity}</span>
+                  <button
+                    type="button"
+                    className="qty-btn"
+                    onClick={() => setModalQuantity((q) => q + 1)}
+                  >
+                    <Plus size={13} weight="bold" />
+                  </button>
                 </div>
               </div>
 
-              {/* CTA Buttons */}
+              {/* Actions */}
               <div className="modal-actions-row">
                 <button
                   type="button"
                   className="btn-add-cart"
                   onClick={handleModalAdd}
                 >
-                  <ShoppingCart size={18} weight="bold" /> Add to Cart
+                  <ShoppingBag size={16} weight="regular" /> Add to Cart
                 </button>
                 <button
                   type="button"
                   className="btn-buy-now"
                   onClick={handleModalBuyNow}
                 >
-                  Buy Now
+                  Purchase Now
                 </button>
               </div>
             </div>

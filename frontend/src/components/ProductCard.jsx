@@ -1,23 +1,14 @@
 import { useState } from 'react';
-import { Star, Eye, ShoppingCart, Check, ShieldCheck } from '@phosphor-icons/react';
+import { Star, Check, ShoppingBag, Eye } from '@phosphor-icons/react';
 
 function ProductCard({ product, onQuickView, onAddToCart, isInCart }) {
   const [justAdded, setJustAdded] = useState(false);
 
-  // Dynamic MRP and discount computation (Flipkart/Amazon style)
   const currentPrice = Number(product.productPrice || 0);
-  const discountRate = 0.25 + ((parseInt(product.productId?.replace(/\D/g, '') || '5', 10) % 5) * 0.05); // 25% - 45% discount
-  const mrpPrice = Math.round(currentPrice / (1 - discountRate));
-  const discountPercent = Math.round(((mrpPrice - currentPrice) / mrpPrice) * 100);
-
-  // Dynamic rating and review count based on product id
-  const idNum = parseInt(product.productId?.replace(/\D/g, '') || '101', 10);
-  const rating = (4.0 + ((idNum % 9) * 0.1)).toFixed(1);
-  const reviewsCount = ((idNum * 37) % 800) + 120;
-  const isBestSeller = idNum % 3 === 0;
-
   const formattedPrice = currentPrice.toLocaleString('en-IN');
-  const formattedMrp = mrpPrice.toLocaleString('en-IN');
+
+  const idNum = parseInt(product.productId?.replace(/\D/g, '') || '101', 10);
+  const rating = (4.2 + ((idNum % 7) * 0.1)).toFixed(1);
 
   const productInitials = String(product.productName || 'Item')
     .trim()
@@ -33,7 +24,7 @@ function ProductCard({ product, onQuickView, onAddToCart, isInCart }) {
       onAddToCart(product);
     }
     setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 1800);
+    setTimeout(() => setJustAdded(false), 1600);
   };
 
   return (
@@ -49,24 +40,18 @@ function ProductCard({ product, onQuickView, onAddToCart, isInCart }) {
         }
       }}
     >
-      {/* Top Badges */}
-      <div className="card-badges">
-        <span className="badge-discount-tag">{discountPercent}% OFF</span>
-        {isBestSeller && <span className="badge-bestseller">Best Seller</span>}
-      </div>
-
-      {/* Quick View Button */}
+      {/* Quick View Trigger on Hover */}
       <button
         type="button"
         className="card-quickview-btn"
-        title="Quick View"
-        aria-label={`Quick preview for ${product.productName}`}
+        title="Quick view"
+        aria-label={`View ${product.productName}`}
         onClick={(e) => {
           e.stopPropagation();
           onQuickView && onQuickView(product);
         }}
       >
-        <Eye size={18} weight="bold" />
+        <Eye size={16} weight="regular" />
       </button>
 
       {/* Product Image */}
@@ -90,38 +75,22 @@ function ProductCard({ product, onQuickView, onAddToCart, isInCart }) {
         </span>
       </div>
 
-      {/* Department & Title */}
-      <div className="card-dept">{product.category || 'General'}</div>
-      <h3 className="card-product-title" title={product.productName}>
-        {product.productName}
-      </h3>
+      {/* Details */}
+      <div className="card-info">
+        <div className="card-dept">{product.category}</div>
+        <h3 className="card-product-title" title={product.productName}>
+          {product.productName}
+        </h3>
 
-      {/* Star Ratings & Assured Badge */}
-      <div className="card-rating-row">
-        <span className="rating-badge">
-          {rating} <Star size={11} weight="fill" />
-        </span>
-        <span className="review-count">({reviewsCount.toLocaleString()})</span>
-        <span className="assured-pill" title="100% Genuine and Quality Verified">
-          <ShieldCheck size={13} weight="fill" /> Assured
-        </span>
+        <div className="card-meta-row">
+          <span className="card-price price-num">₹{formattedPrice}</span>
+          <span className="card-rating">
+            <Star size={12} weight="fill" /> {rating}
+          </span>
+        </div>
       </div>
 
-      {/* Pricing Row */}
-      <div className="card-pricing-row">
-        <span className="card-current-price price-num">₹{formattedPrice}</span>
-        <span className="card-mrp-price price-num">₹{formattedMrp}</span>
-        <span className="card-discount-tag">{discountPercent}% off</span>
-      </div>
-
-      {/* Delivery Promise */}
-      <div className="card-delivery-promise">
-        <span className="free-tag">FREE Delivery</span>
-        <span>·</span>
-        <span>Get it by <strong>Tomorrow</strong></span>
-      </div>
-
-      {/* Add to Cart CTA */}
+      {/* Clean Minimal Add Button */}
       <button
         type="button"
         className={`card-add-btn ${justAdded || isInCart ? 'added' : ''}`}
@@ -130,15 +99,15 @@ function ProductCard({ product, onQuickView, onAddToCart, isInCart }) {
       >
         {justAdded ? (
           <>
-            <Check size={16} weight="bold" /> Added to Cart
+            <Check size={14} weight="bold" /> Added
           </>
         ) : isInCart ? (
           <>
-            <Check size={16} weight="bold" /> In Cart ({isInCart})
+            <Check size={14} weight="bold" /> In Cart ({isInCart})
           </>
         ) : (
           <>
-            <ShoppingCart size={16} weight="bold" /> Add to Cart
+            <ShoppingBag size={14} weight="regular" /> Add to Cart
           </>
         )}
       </button>
