@@ -5,7 +5,9 @@ const Product = require('../models/Product');
 const User = require('../models/User');
 const { fetchFakeStoreProducts } = require('../data/seedData');
 
-const verifyAuthentication = async (req, res, next) => {
+// Optional authentication helper: allows guests to freely browse products (like Flipkart / Amazon)
+// while attaching user credentials to req.user if a valid token or header is present.
+const optionalAuthentication = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     let token = null;
@@ -21,30 +23,26 @@ const verifyAuthentication = async (req, res, next) => {
           process.env.JWT_SECRET || 'cartify_jwt_secret_key_default'
         );
         req.user = decoded;
-        return next();
-      } catch (tokenErr) {}
-    }
-
-    const emailCandidate = req.headers['x-user-email'] || req.query.emailId;
-    if (emailCandidate) {
-      const userExists = await User.findOne({ emailId: String(emailCandidate).toLowerCase() });
-      if (userExists) {
-        req.user = { emailId: userExists.emailId, username: userExists.username };
-        return next();
+      } catch (tokenErr) {
+        // Token invalid or expired; continue as guest
       }
     }
 
-    return res.status(401).json({
-      message: 'Unauthorized: Unauthenticated users cannot access product data directly. Please log in first.',
-    });
+    const emailCandidate = req.headers['x-user-email'] || req.query.emailId;
+    if (emailCandidate && !req.user) {
+      const userExists = await User.findOne({ emailId: String(emailCandidate).toLowerCase() });
+      if (userExists) {
+        req.user = { emailId: userExists.emailId, username: userExists.username };
+      }
+    }
   } catch (err) {
-    return res.status(401).json({
-      message: 'Authentication check failed: ' + err.message,
-    });
+    // Continue even if optional auth candidate parsing fails
   }
+  next();
 };
 
-router.get('/', verifyAuthentication, async (req, res) => {
+// GET /api/products is publicly accessible for all users (guests and authenticated alike)
+router.get('/', optionalAuthentication, async (req, res) => {
   try {
     const products = await Product.find({}).sort({ productId: 1 });
     return res.status(200).json({

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { ArrowLeft } from '@phosphor-icons/react';
 
-function UserRegistration({ onNavigateToLogin }) {
+function UserRegistration({ onNavigateToLogin, onCancel }) {
   const [formData, setFormData] = useState({
     username: '',
     emailId: '',
@@ -70,9 +71,30 @@ function UserRegistration({ onNavigateToLogin }) {
   return (
     <div className="auth-wrapper">
       <div className="auth-card">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: 'var(--ink-500)',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              marginBottom: '16px',
+            }}
+          >
+            <ArrowLeft size={16} weight="bold" />
+            <span>Continue shopping as Guest</span>
+          </button>
+        )}
+
         <div className="auth-header">
           <h2 className="page-title">Create an Account</h2>
-          <p className="page-subtitle">Join Cartify for seamless shopping and order management</p>
+          <p className="page-subtitle">
+            Join Cartify for seamless shopping, order tracking and member deals
+          </p>
         </div>
 
         {statusMessage && (
@@ -83,7 +105,9 @@ function UserRegistration({ onNavigateToLogin }) {
 
         <form onSubmit={handleRegister}>
           <div className="form-group">
-            <label className="form-label" htmlFor="reg-username">Username</label>
+            <label className="form-label" htmlFor="reg-username">
+              Username
+            </label>
             <input
               id="reg-username"
               type="text"
@@ -97,7 +121,9 @@ function UserRegistration({ onNavigateToLogin }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="reg-email">Email ID</label>
+            <label className="form-label" htmlFor="reg-email">
+              Email ID
+            </label>
             <input
               id="reg-email"
               type="email"
@@ -111,7 +137,9 @@ function UserRegistration({ onNavigateToLogin }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="reg-age">Age</label>
+            <label className="form-label" htmlFor="reg-age">
+              Age
+            </label>
             <input
               id="reg-age"
               type="number"
@@ -127,7 +155,9 @@ function UserRegistration({ onNavigateToLogin }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="reg-password">Password</label>
+            <label className="form-label" htmlFor="reg-password">
+              Password
+            </label>
             <input
               id="reg-password"
               type="password"
@@ -142,9 +172,9 @@ function UserRegistration({ onNavigateToLogin }) {
 
           <button
             type="submit"
-            className="btn btn-solid btn-block"
+            className="btn-solid"
             disabled={isSubmitting}
-            style={{ marginTop: '10px' }}
+            style={{ marginTop: '12px' }}
           >
             {isSubmitting ? 'Registering...' : 'Register User'}
           </button>

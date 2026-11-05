@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { ArrowLeft, Sparkle } from '@phosphor-icons/react';
 
-function UserLogin({ onLoginSuccess, onNavigateToRegister }) {
+function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
   const [emailId, setEmailId] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState(null);
@@ -46,12 +47,38 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister }) {
     }
   };
 
+  const handleDemoFill = () => {
+    setEmailId('demo@cartify.com');
+    setPassword('demo123');
+  };
+
   return (
     <div className="auth-wrapper">
       <div className="auth-card">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: 'var(--ink-500)',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              marginBottom: '16px',
+            }}
+          >
+            <ArrowLeft size={16} weight="bold" />
+            <span>Continue shopping as Guest</span>
+          </button>
+        )}
+
         <div className="auth-header">
-          <h2 className="page-title">Sign In</h2>
-          <p className="page-subtitle">Welcome back! Please enter your credentials</p>
+          <h2 className="page-title">Sign In to Cartify</h2>
+          <p className="page-subtitle">
+            Access your orders, saved addresses & personalised recommendations
+          </p>
         </div>
 
         {errorMessage && (
@@ -62,12 +89,14 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister }) {
 
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label className="form-label" htmlFor="login-email">Email ID</label>
+            <label className="form-label" htmlFor="login-email">
+              Email ID
+            </label>
             <input
               id="login-email"
               type="email"
               className="text-input"
-              placeholder="e.g. shri@gmail.com"
+              placeholder="e.g. demo@cartify.com"
               value={emailId}
               onChange={(e) => setEmailId(e.target.value)}
               required
@@ -75,7 +104,9 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="login-password">Password</label>
+            <label className="form-label" htmlFor="login-password">
+              Password
+            </label>
             <input
               id="login-password"
               type="password"
@@ -89,22 +120,46 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister }) {
 
           <button
             type="submit"
-            className="btn btn-solid btn-block"
+            className="btn-solid"
             disabled={isSubmitting}
-            style={{ marginTop: '10px' }}
+            style={{ marginTop: '12px' }}
           >
-            {isSubmitting ? 'Verifying...' : 'Sign In to Account'}
+            {isSubmitting ? 'Verifying...' : 'Sign In'}
+          </button>
+
+          {/* Quick Demo Login Option */}
+          <button
+            type="button"
+            onClick={handleDemoFill}
+            style={{
+              marginTop: '10px',
+              width: '100%',
+              height: '36px',
+              background: '#f8fafc',
+              border: '1px dashed #cbd5e1',
+              borderRadius: '6px',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              color: 'var(--ink-700)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+            }}
+          >
+            <Sparkle size={14} weight="fill" color="var(--accent-gold)" />
+            <span>Use Demo Account (demo@cartify.com)</span>
           </button>
         </form>
 
         <div className="auth-footer">
-          New user?
+          New customer?
           <button
             type="button"
             className="auth-link"
             onClick={onNavigateToRegister}
           >
-            Register here
+            Create an account
           </button>
         </div>
       </div>
