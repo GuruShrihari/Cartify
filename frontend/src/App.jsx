@@ -137,10 +137,10 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Direct Buy Now takes user directly to the dedicated Checkout Page (/checkout)
+  // Direct Buy Now: requires login before proceeding to Checkout
   const handleDirectBuy = (product, quantity = 1) => {
     const total = Number(product.productPrice || 0) * quantity;
-    setCheckoutItems([
+    const items = [
       {
         productId: product.productId,
         productName: product.productName,
@@ -149,13 +149,26 @@ function AppContent() {
         category: product.category,
         quantity,
       },
-    ]);
+    ];
+    setCheckoutItems(items);
     setCheckoutTotal(total);
+
+    if (!user) {
+      showToast('Please sign in or create an account to proceed to checkout');
+      navigate('/login', {
+        state: {
+          from: '/checkout',
+          notice: `Please sign in or create an account to complete your purchase of “${product.productName}”.`,
+        },
+      });
+      return;
+    }
+
     navigate('/checkout');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Cart checkout takes user directly to the dedicated Checkout Page (/checkout)
+  // Cart checkout: requires login before proceeding to Checkout
   const handleCartCheckout = () => {
     if (cart.length === 0) return;
     const total = cart.reduce(
@@ -165,6 +178,18 @@ function AppContent() {
     setCheckoutItems(cart);
     setCheckoutTotal(total);
     setIsCartOpen(false);
+
+    if (!user) {
+      showToast('Please sign in or create an account to proceed to checkout');
+      navigate('/login', {
+        state: {
+          from: '/checkout',
+          notice: 'Please sign in or create an account to complete checkout for your bag.',
+        },
+      });
+      return;
+    }
+
     navigate('/checkout');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -182,11 +207,17 @@ function AppContent() {
     showToast('Payment verified via Razorpay! Confirmation email dispatched.');
   };
 
-  const handleLoginSuccess = ({ user: loggedInUser, token: authToken }) => {
+  const handleLoginSuccess = ({ user: loggedInUser, token: authToken }, destination) => {
     setUser(loggedInUser);
     setToken(authToken);
     localStorage.setItem('cartify_token', authToken);
     localStorage.setItem('cartify_user', JSON.stringify(loggedInUser));
+
+    if (destination) {
+      navigate(destination);
+      showToast(`Welcome, ${loggedInUser.username}! Resuming your checkout.`);
+      return;
+    }
 
     if (loggedInUser.role === 'admin') {
       navigate('/admin');
@@ -194,6 +225,26 @@ function AppContent() {
     } else {
       navigate('/products');
       showToast(`Welcome back, ${loggedInUser.username}`);
+    }
+  };
+
+  const handleRegisterSuccess = ({ user: registeredUser, token: authToken }, destination) => {
+    if (authToken && registeredUser) {
+      setUser(registeredUser);
+      setToken(authToken);
+      localStorage.setItem('cartify_token', authToken);
+      localStorage.setItem('cartify_user', JSON.stringify(registeredUser));
+
+      if (destination) {
+        navigate(destination);
+        showToast(`Account created! Resuming your checkout.`);
+        return;
+      }
+
+      navigate('/products');
+      showToast(`Welcome to Cartify, ${registeredUser.username}!`);
+    } else {
+      navigate('/login', { state: { from: destination } });
     }
   };
 
@@ -295,27 +346,36 @@ function AppContent() {
             element={
               <ProductDetailPage
                 product={selectedProduct}
+                cart={cart}
                 onBack={() => navigate('/products')}
                 onAddToCart={handleAddToCart}
                 onBuyNow={handleDirectBuy}
-                isInCart={
-                  cart.find((i) => i.productId === selectedProduct?.productId)?.quantity || 0
-                }
               />
             }
           />
 
-          {/* Dedicated Checkout Page: /checkout */}
+          {/* Dedicated Checkout Page: /checkout (strictly protected - requires user login) */}
           <Route
             path="/checkout"
             element={
-              <CheckoutPage
-                items={effectiveCheckoutItems}
-                totalAmount={effectiveCheckoutTotal}
-                user={user}
-                onPaymentSuccess={handlePaymentSuccess}
-                onBack={() => navigate('/products')}
-              />
+              user ? (
+                <CheckoutPage
+                  items={effectiveCheckoutItems}
+                  totalAmount={effectiveCheckoutTotal}
+                  user={user}
+                  onPaymentSuccess={handlePaymentSuccess}
+                  onBack={() => navigate('/products')}
+                />
+              ) : (
+                <Navigate
+                  to="/login"
+                  state={{
+                    from: '/checkout',
+                    notice: 'Please sign in or create an account to access checkout.',
+                  }}
+                  replace
+                />
+              )
             }
           />
 
@@ -334,15 +394,19 @@ function AppContent() {
             }
           />
 
-          {/* RBAC Admin Portal: /admin */}
+          {/* RBAC Admin Portal: /admin (strictly protected - requires admin role) */}
           <Route
             path="/admin"
             element={
-              <AdminDashboard
-                user={user}
-                token={token}
-                onNavigateToStore={() => navigate('/products')}
-              />
+              user && user.role === 'admin' ? (
+                <AdminDashboard
+                  user={user}
+                  token={token}
+                  onNavigateToStore={() => navigate('/products')}
+                />
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
 
@@ -353,7 +417,9 @@ function AppContent() {
               <div className="container">
                 <UserLogin
                   onLoginSuccess={handleLoginSuccess}
-                  onNavigateToRegister={() => navigate('/register')}
+                  onNavigateToRegister={(returnTarget, notice) =>
+                    navigate('/register', { state: { from: returnTarget, notice } })
+                  }
                   onCancel={() => navigate('/products')}
                 />
               </div>
@@ -366,7 +432,10 @@ function AppContent() {
             element={
               <div className="container">
                 <UserRegistration
-                  onNavigateToLogin={() => navigate('/login')}
+                  onRegisterSuccess={handleRegisterSuccess}
+                  onNavigateToLogin={(returnTarget, notice) =>
+                    navigate('/login', { state: { from: returnTarget, notice } })
+                  }
                   onCancel={() => navigate('/products')}
                 />
               </div>

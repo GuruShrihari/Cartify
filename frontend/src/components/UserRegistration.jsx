@@ -1,7 +1,12 @@
 import { useState } from 'react';
-import { ArrowLeft } from '@phosphor-icons/react';
+import { useLocation } from 'react-router-dom';
+import { ArrowLeft, LockSimple } from '@phosphor-icons/react';
 
-function UserRegistration({ onNavigateToLogin, onCancel }) {
+function UserRegistration({ onRegisterSuccess, onNavigateToLogin, onCancel }) {
+  const location = useLocation();
+  const returnTarget = location.state?.from || null;
+  const notice = location.state?.notice || null;
+
   const [formData, setFormData] = useState({
     username: '',
     emailId: '',
@@ -59,6 +64,22 @@ function UserRegistration({ onNavigateToLogin, onCancel }) {
           age: '',
           password: '',
         });
+
+        if (data.token && onRegisterSuccess) {
+          setTimeout(() => {
+            onRegisterSuccess(
+              {
+                user: data.user,
+                token: data.token,
+              },
+              returnTarget
+            );
+          }, 600);
+        } else if (onNavigateToLogin) {
+          setTimeout(() => {
+            onNavigateToLogin(returnTarget);
+          }, 800);
+        }
       }
     } catch (err) {
       setIsError(true);
@@ -97,6 +118,28 @@ function UserRegistration({ onNavigateToLogin, onCancel }) {
           </p>
         </div>
 
+        {notice && (
+          <div
+            className="alert-banner info"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              borderRadius: '6px',
+              background: 'var(--info-bg)',
+              color: 'var(--info-text)',
+              border: '1px solid var(--info-border)',
+              fontSize: '13px',
+              marginBottom: '16px',
+              lineHeight: 1.4,
+            }}
+          >
+            <LockSimple size={16} weight="bold" />
+            <span>{notice}</span>
+          </div>
+        )}
+
         {statusMessage && (
           <div className={`alert-banner ${isError ? 'error' : 'success'}`}>
             <span>{statusMessage}</span>
@@ -113,7 +156,7 @@ function UserRegistration({ onNavigateToLogin, onCancel }) {
               type="text"
               name="username"
               className="text-input"
-              placeholder="e.g. Raghavendra"
+              placeholder="e.g. AlexMorgan"
               value={formData.username}
               onChange={handleChange}
               required
@@ -129,7 +172,7 @@ function UserRegistration({ onNavigateToLogin, onCancel }) {
               type="email"
               name="emailId"
               className="text-input"
-              placeholder="e.g. raghavendra@snu.edu.in"
+              placeholder="name@example.com"
               value={formData.emailId}
               onChange={handleChange}
               required
@@ -176,7 +219,7 @@ function UserRegistration({ onNavigateToLogin, onCancel }) {
             disabled={isSubmitting}
             style={{ marginTop: '12px' }}
           >
-            {isSubmitting ? 'Registering...' : 'Register User'}
+            {isSubmitting ? 'Registering...' : returnTarget ? 'Create Account & Continue to Checkout' : 'Register User'}
           </button>
         </form>
 
@@ -185,7 +228,7 @@ function UserRegistration({ onNavigateToLogin, onCancel }) {
           <button
             type="button"
             className="auth-link"
-            onClick={onNavigateToLogin}
+            onClick={() => onNavigateToLogin(returnTarget, notice)}
           >
             Sign In here
           </button>

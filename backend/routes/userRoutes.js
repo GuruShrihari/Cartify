@@ -75,8 +75,20 @@ router.post('/users', async (req, res) => {
 
     await newUser.save();
 
+    const token = jwt.sign(
+      {
+        id: newUser._id,
+        emailId: newUser.emailId,
+        username: newUser.username,
+        role: newUser.role,
+      },
+      process.env.JWT_SECRET || 'cartify_jwt_secret_key_default',
+      { expiresIn: '24h' }
+    );
+
     return res.status(201).json({
       message: `Successfully registered! Welcome, ${newUser.username}.`,
+      token,
       user: {
         username: newUser.username,
         emailId: newUser.emailId,

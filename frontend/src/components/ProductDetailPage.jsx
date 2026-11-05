@@ -12,6 +12,7 @@ import {
 
 function ProductDetailPage({
   product: propProduct,
+  cart = [],
   onBack,
   onAddToCart,
   onBuyNow,
@@ -25,14 +26,19 @@ function ProductDetailPage({
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
 
-  const product = propProduct || fetchedProduct;
+  const product = (propProduct && (!id || propProduct.productId === id)) ? propProduct : fetchedProduct;
 
   useEffect(() => {
-    if (propProduct || !id) return;
+    if ((propProduct && (!id || propProduct.productId === id)) || !id) {
+      return;
+    }
+
+    if (!id) return;
 
     let isMounted = true;
     async function load() {
       setIsLoading(true);
+      setFetchError(null);
       try {
         const res = await fetch(`/api/products/${id}`);
         const data = await res.json();
@@ -44,11 +50,16 @@ function ProductDetailPage({
           }
         }
       } catch (err) {
-        if (isMounted) setFetchError(err.message);
+        if (isMounted) {
+          setFetchError(err.message || 'Error loading product');
+        }
       } finally {
-        if (isMounted) setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
+
     load();
     return () => {
       isMounted = false;
@@ -65,7 +76,7 @@ function ProductDetailPage({
 
   if (isLoading) {
     return (
-      <div className="container" style={{ padding: '80px 24px', textAlign: 'center' }}>
+      <div className="container product-detail-page" style={{ padding: '80px 24px', textAlign: 'center' }}>
         <p style={{ color: 'var(--ink-500)', fontSize: '14px' }}>Loading product details...</p>
       </div>
     );
@@ -73,7 +84,7 @@ function ProductDetailPage({
 
   if (!product) {
     return (
-      <div className="container" style={{ padding: '60px 24px', textAlign: 'center' }}>
+      <div className="container product-detail-page" style={{ padding: '60px 24px', textAlign: 'center' }}>
         <h2>{fetchError || 'Product not found'}</h2>
         <button
           type="button"
@@ -92,6 +103,9 @@ function ProductDetailPage({
   const idNum = parseInt(product.productId?.replace(/\D/g, '') || '101', 10);
   const rating = (4.3 + ((idNum % 6) * 0.1)).toFixed(1);
   const reviewsCount = ((idNum * 23) % 400) + 45;
+
+  const currentInBagCount =
+    cart.find((i) => i.productId === product.productId)?.quantity || isInCart || 0;
 
   const handleAdd = () => {
     if (onAddToCart) {
@@ -119,133 +133,154 @@ function ProductDetailPage({
           <ArrowLeft size={16} weight="bold" />
           <span>Back to Catalog</span>
         </button>
-        <span className="breadcrumb-divider">/</span>
-        <span className="breadcrumb-current">{product.category}</span>
-        <span className="breadcrumb-divider">/</span>
-        <span className="breadcrumb-current truncate">{product.productName}</span>
+        <span className="crumb-divider">/</span>
+        <span className="crumb-category">{product.category}</span>
+        <span className="crumb-divider">/</span>
+        <span className="crumb-current">{product.productName}</span>
       </nav>
 
-      {/* Main Product Showcase Grid */}
-      <div className="detail-layout-grid">
-        {/* Left: Gallery Showcase */}
-        <div className="detail-gallery-col">
+      {/* Main Product Showcase */}
+      <div className="product-detail-layout">
+        {/* Left Column: Image View */}
+        <div className="product-detail-gallery">
           <div className="gallery-main-frame">
-            <img
-              src={product.productImage}
-              alt={product.productName}
-              className="gallery-hero-image"
-              loading="eager"
-            />
+            {product.productImage ? (
+              <img
+                src={product.productImage}
+                alt={product.productName}
+                loading="eager"
+              />
+            ) : (
+              <div className="product-initials-large">
+                {product.productName.slice(0, 2).toUpperCase()}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right: Product Spec & Purchase Controller */}
-        <div className="detail-info-col">
-          <div className="detail-tag-row">
-            <span className="dept-tag">{product.category}</span>
-            <div className="detail-rating-pill" aria-label={`Rating ${rating} out of 5 stars`}>
-              <Star size={13} weight="fill" />
+        {/* Right Column: Information & Purchase Controls */}
+        <div className="product-detail-content">
+          <div className="detail-kicker">
+            <span>{product.category}</span>
+            <span className="sku-badge">SKU #{product.productId}</span>
+          </div>
+
+          <h1 className="detail-title">{product.productName}</h1>
+
+          {/* Ratings & Price */}
+          <div className="detail-meta-row">
+            <div className="detail-price-box">
+              <span className="detail-price price-num">₹{formattedPrice}</span>
+              <span className="detail-price-sub">Tax included &middot; Free dispatch</span>
+            </div>
+
+            <div className="detail-rating-pill">
+              <Star size={14} weight="fill" />
               <span>{rating}</span>
-              <span className="rating-count">({reviewsCount})</span>
+              <span className="rating-count">({reviewsCount} reviews)</span>
             </div>
           </div>
 
-          <h1 className="detail-product-title">{product.productName}</h1>
-          <p className="detail-sku">SKU: <span className="price-num">{product.productId}</span></p>
-
-          <div className="detail-price-box">
-            <span className="detail-price-currency">₹</span>
-            <span className="detail-price-value price-num">{formattedPrice}</span>
-            <span className="detail-price-taxes">Taxes included &middot; Free express shipping</span>
-          </div>
-
-          <div className="detail-description-block">
-            <h3 className="section-label">Design & Details</h3>
-            <p className="detail-description-text">
+          {/* Description */}
+          <div className="detail-desc-box">
+            <h3 className="section-label">Overview</h3>
+            <p className="detail-desc">
               {product.description ||
                 'Thoughtfully designed for everyday living, built with high-grade components that blend seamless utility with refined minimalist aesthetics.'}
             </p>
           </div>
 
-          {/* Action Row */}
-          <div className="detail-action-card">
-            <div className="qty-row">
+          {/* Stock & Availability */}
+          <div className="detail-stock-row">
+            <span className="stock-indicator">
+              <span
+                className="status-dot"
+                style={{
+                  background:
+                    Number(product.quantity) > 0 ? 'var(--success-text)' : 'var(--error-text)',
+                }}
+              />
+              {Number(product.quantity) > 0
+                ? `Available in inventory (${product.quantity} units)`
+                : 'Currently out of stock'}
+            </span>
+          </div>
+
+          {/* Quantity Selector */}
+          <div className="detail-action-group">
+            <div className="detail-qty-control">
               <span className="qty-label">Quantity</span>
-              <div className="qty-selector">
+              <div className="qty-stepper">
                 <button
                   type="button"
                   className="qty-btn"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   aria-label="Decrease quantity"
                 >
-                  <Minus size={14} weight="bold" />
+                  <Minus size={13} weight="bold" />
                 </button>
-                <span className="qty-num price-num">{quantity}</span>
+                <span className="qty-display price-num">{quantity}</span>
                 <button
                   type="button"
                   className="qty-btn"
-                  onClick={() => setQuantity((q) => Math.min(Number(product.quantity) || 99, q + 1))}
+                  onClick={() => setQuantity((q) => q + 1)}
                   aria-label="Increase quantity"
                 >
-                  <Plus size={14} weight="bold" />
+                  <Plus size={13} weight="bold" />
                 </button>
               </div>
-              <span className="stock-hint">
-                {product.quantity > 0 ? (
-                  <span className="stock-in price-num">{product.quantity} units in stock</span>
-                ) : (
-                  <span className="stock-out">Backorder</span>
-                )}
-              </span>
             </div>
 
-            <div className="detail-cta-group">
+            {/* Buttons: Add to Bag & Buy Now via Razorpay */}
+            <div className="detail-cta-grid">
               <button
                 type="button"
-                className={`btn-solid btn-add-bag ${justAdded ? 'added' : ''}`}
+                className={`btn-detail-add ${justAdded || currentInBagCount > 0 ? 'added' : ''}`}
                 onClick={handleAdd}
               >
                 {justAdded ? (
                   <>
-                    <Check size={18} weight="bold" />
-                    <span>Added to Bag</span>
+                    <Check size={16} weight="bold" /> Added to Bag
+                  </>
+                ) : currentInBagCount > 0 ? (
+                  <>
+                    <Check size={16} weight="bold" /> In Bag ({currentInBagCount})
                   </>
                 ) : (
                   <>
-                    <ShoppingBag size={18} weight="regular" />
-                    <span>Add to Bag {isInCart > 0 ? `(${isInCart} in bag)` : ''}</span>
+                    <ShoppingBag size={16} weight="regular" /> Add to Bag
                   </>
                 )}
               </button>
 
               <button
                 type="button"
-                className="btn-pay-now"
+                className="btn-detail-buy"
                 onClick={handleDirectBuy}
               >
-                <CreditCard size={18} weight="regular" />
+                <CreditCard size={16} weight="bold" />
                 <span>Buy Now</span>
               </button>
             </div>
           </div>
 
-          {/* Specifications Grid */}
+          {/* Specifications Checklist */}
           <div className="detail-specs-card">
-            <div className="spec-row">
-              <span className="spec-label">Guaranteed</span>
-              <span className="spec-val">100% Genuine & Assured</span>
+            <div className="spec-item">
+              <span className="spec-key">Origin & Sourcing</span>
+              <span className="spec-val">Direct from verified artisans & makers</span>
             </div>
-            <div className="spec-row">
-              <span className="spec-label">Dispatched via</span>
-              <span className="spec-val">Bluedart & Delhivery Air</span>
+            <div className="spec-item">
+              <span className="spec-key">Packaging</span>
+              <span className="spec-val">100% recyclable, minimal protective carton</span>
             </div>
-            <div className="spec-row">
-              <span className="spec-label">Payment Security</span>
+            <div className="spec-item">
+              <span className="spec-key">Payment Security</span>
               <span className="spec-val">256-bit Encrypted Razorpay Gateway</span>
             </div>
-            <div className="spec-row">
-              <span className="spec-label">Return Policy</span>
-              <span className="spec-val">7-Day Hassle-free replacement</span>
+            <div className="spec-item">
+              <span className="spec-key">Returns Policy</span>
+              <span className="spec-val">7 days return & replacement support</span>
             </div>
           </div>
         </div>

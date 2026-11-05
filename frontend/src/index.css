@@ -1305,6 +1305,175 @@ img {
   text-decoration: underline;
 }
 
+/* ==========================================================================
+   Quick Demo Credentials in Auth Card
+   ========================================================================== */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 22px 0 16px;
+  gap: 12px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-line);
+}
+
+.auth-divider span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: var(--ink-400);
+}
+
+.demo-accounts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.demo-account-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  font-family: inherit;
+}
+
+.demo-account-card:hover {
+  background: var(--bg-subtle);
+  border-color: var(--ink-400);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-subtle);
+}
+
+.demo-account-card:focus-visible {
+  outline: 2px solid var(--ink-900);
+  outline-offset: 1px;
+}
+
+.demo-account-card.active {
+  border-color: var(--ink-900);
+  background: var(--bg-subtle);
+  box-shadow: 0 0 0 1px var(--ink-900);
+}
+
+.demo-account-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.demo-account-icon.customer {
+  background: var(--bg-hover);
+  color: var(--ink-800);
+}
+
+.demo-account-icon.admin {
+  background: var(--info-bg);
+  color: var(--info-text);
+  border: 1px solid var(--info-border);
+}
+
+.demo-account-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.demo-account-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+
+.demo-account-role {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-900);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.demo-account-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-hover);
+  color: var(--ink-700);
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.demo-account-badge.admin-badge {
+  background: var(--info-bg);
+  color: var(--info-text);
+}
+
+.demo-account-badge.filled-badge {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.demo-account-card:hover .demo-account-badge:not(.filled-badge) {
+  background: var(--ink-900);
+  color: #ffffff;
+}
+
+.demo-account-details {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.demo-email {
+  font-family: var(--font-sans);
+  color: var(--ink-600);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.demo-dot {
+  color: var(--ink-400);
+  font-weight: bold;
+}
+
+.demo-pass {
+  font-family: var(--font-sans);
+  background: var(--bg-subtle);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border-subtle);
+  color: var(--ink-700);
+  font-size: 11px;
+}
+
 /* User Profile Management */
 .page-header {
   display: flex;

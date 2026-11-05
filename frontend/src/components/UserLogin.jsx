@@ -1,11 +1,17 @@
 import { useState } from 'react';
-import { ArrowLeft, ShieldCheck, User } from '@phosphor-icons/react';
+import { useLocation } from 'react-router-dom';
+import { ArrowLeft, ShieldCheck, User, LockSimple, Check } from '@phosphor-icons/react';
 
 function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
+  const location = useLocation();
+  const returnTarget = location.state?.from || null;
+  const notice = location.state?.notice || null;
+
   const [emailId, setEmailId] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filledRole, setFilledRole] = useState(null);
 
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
@@ -35,10 +41,13 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
       if (!response.ok) {
         setErrorMessage(data.message || 'Login failed.');
       } else {
-        onLoginSuccess({
-          user: data.user,
-          token: data.token,
-        });
+        onLoginSuccess(
+          {
+            user: data.user,
+            token: data.token,
+          },
+          returnTarget
+        );
       }
     } catch (err) {
       setErrorMessage('Network or server connection failed: ' + err.message);
@@ -50,11 +59,15 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
   const handleDemoFill = () => {
     setEmailId('shonlyforstudies@gmail.com');
     setPassword('demo123');
+    setErrorMessage(null);
+    setFilledRole('customer');
   };
 
   const handleAdminFill = () => {
     setEmailId('admin@cartify.com');
     setPassword('admin123');
+    setErrorMessage(null);
+    setFilledRole('admin');
   };
 
   return (
@@ -86,6 +99,28 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
           </p>
         </div>
 
+        {notice && (
+          <div
+            className="alert-banner info"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              borderRadius: '6px',
+              background: 'var(--info-bg)',
+              color: 'var(--info-text)',
+              border: '1px solid var(--info-border)',
+              fontSize: '13px',
+              marginBottom: '16px',
+              lineHeight: 1.4,
+            }}
+          >
+            <LockSimple size={16} weight="bold" />
+            <span>{notice}</span>
+          </div>
+        )}
+
         {errorMessage && (
           <div className="alert-banner error">
             <span>{errorMessage}</span>
@@ -103,7 +138,10 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
               className="text-input"
               placeholder="e.g. shonlyforstudies@gmail.com"
               value={emailId}
-              onChange={(e) => setEmailId(e.target.value)}
+              onChange={(e) => {
+                setEmailId(e.target.value);
+                setFilledRole(null);
+              }}
               required
             />
           </div>
@@ -118,7 +156,10 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
               className="text-input"
               placeholder="Enter your password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setFilledRole(null);
+              }}
               required
             />
           </div>
@@ -129,53 +170,79 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
             disabled={isSubmitting}
             style={{ marginTop: '12px' }}
           >
-            {isSubmitting ? 'Authenticating...' : 'Sign In'}
+            {isSubmitting ? 'Authenticating...' : returnTarget ? 'Sign In & Continue to Checkout' : 'Sign In'}
           </button>
 
-          {/* Quick Login Helpers for Evaluator / User */}
-          <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {/* Quick Demo Credentials in Refined Minimalist UI */}
+          <div className="auth-divider">
+            <span>Quick Demo Credentials</span>
+          </div>
+
+          <div className="demo-accounts-container">
+            {/* Fill Customer Card */}
             <button
               type="button"
+              className={`demo-account-card ${filledRole === 'customer' ? 'active' : ''}`}
               onClick={handleDemoFill}
-              style={{
-                width: '100%',
-                height: '34px',
-                background: 'var(--bg-subtle)',
-                border: '1px solid var(--border-line)',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: 500,
-                color: 'var(--ink-800)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-              }}
+              title="Click to fill Customer credentials (shonlyforstudies@gmail.com / demo123)"
             >
-              <User size={14} weight="regular" />
-              <span>Fill Customer (shonlyforstudies@gmail.com / demo123)</span>
+              <div className="demo-account-icon customer">
+                <User size={18} weight="bold" />
+              </div>
+
+              <div className="demo-account-content">
+                <div className="demo-account-top">
+                  <span className="demo-account-role">Fill Customer</span>
+                  <span className={`demo-account-badge ${filledRole === 'customer' ? 'filled-badge' : ''}`}>
+                    {filledRole === 'customer' ? (
+                      <>
+                        <Check size={11} weight="bold" />
+                        <span>Filled</span>
+                      </>
+                    ) : (
+                      'Auto-fill'
+                    )}
+                  </span>
+                </div>
+                <div className="demo-account-details">
+                  <span className="demo-email">shonlyforstudies@gmail.com</span>
+                  <span className="demo-dot">&middot;</span>
+                  <span className="demo-pass">demo123</span>
+                </div>
+              </div>
             </button>
 
+            {/* Fill Admin Card */}
             <button
               type="button"
+              className={`demo-account-card ${filledRole === 'admin' ? 'active' : ''}`}
               onClick={handleAdminFill}
-              style={{
-                width: '100%',
-                height: '34px',
-                background: 'var(--bg-subtle)',
-                border: '1px solid var(--border-line)',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: 600,
-                color: 'var(--ink-800)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-              }}
+              title="Click to fill Admin credentials (admin@cartify.com / admin123)"
             >
-              <ShieldCheck size={15} weight="fill" color="#3b82f6" />
-              <span>Fill Admin (admin@cartify.com / admin123)</span>
+              <div className="demo-account-icon admin">
+                <ShieldCheck size={18} weight="fill" />
+              </div>
+
+              <div className="demo-account-content">
+                <div className="demo-account-top">
+                  <span className="demo-account-role">Fill Admin</span>
+                  <span className={`demo-account-badge admin-badge ${filledRole === 'admin' ? 'filled-badge' : ''}`}>
+                    {filledRole === 'admin' ? (
+                      <>
+                        <Check size={11} weight="bold" />
+                        <span>Filled</span>
+                      </>
+                    ) : (
+                      'Auto-fill'
+                    )}
+                  </span>
+                </div>
+                <div className="demo-account-details">
+                  <span className="demo-email">admin@cartify.com</span>
+                  <span className="demo-dot">&middot;</span>
+                  <span className="demo-pass">admin123</span>
+                </div>
+              </div>
             </button>
           </div>
         </form>
@@ -185,7 +252,7 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
           <button
             type="button"
             className="auth-link"
-            onClick={onNavigateToRegister}
+            onClick={() => onNavigateToRegister(returnTarget, notice)}
           >
             Create an account
           </button>
