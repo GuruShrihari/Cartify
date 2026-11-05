@@ -4,7 +4,7 @@
 
 ---
 
-## 📌 Project Overview
+##  Project Overview
 **Cartify** is a clean, minimal shopping application developed using the **MERN Stack** (MongoDB Atlas, Express.js, React.js with Vite, and Node.js). 
 
 It fulfills all requirements for **Exercise-8**:
@@ -20,7 +20,7 @@ It fulfills all requirements for **Exercise-8**:
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```text
 Cartify/
@@ -62,7 +62,7 @@ Cartify/
 
 ---
 
-## 🗄️ Database Design (MongoDB)
+##  Database Design (MongoDB)
 
 ### 1. Products Collection (`Products`)
 | Field | Type | Description |
@@ -85,7 +85,7 @@ Cartify/
 
 ---
 
-## 🚀 REST API Specification
+##  REST API Specification
 
 | HTTP Method | Endpoint | Query Param | Request Body | Description |
 | :--- | :--- | :--- | :--- | :--- |
@@ -98,7 +98,7 @@ Cartify/
 
 ---
 
-## ⚡ Running the Application
+##  Running the Application
 
 ### 1. Start Backend Server
 ```bash
@@ -118,7 +118,7 @@ npm run dev
 
 ---
 
-## 🧪 Testing with Postman / Thunder Client
+##  Testing with Postman / Thunder Client
 
 ### 1. User Registration
 - **Method:** `POST`
