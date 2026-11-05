@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from './ProductCard';
 
-function ProductCatalog({ token, user }) {
+function ProductCatalog({ token, user, searchQuery }) {
   const [products, setProducts] = useState([]);
   const [filteredCategory, setFilteredCategory] = useState('ALL');
   const [isLoading, setIsLoading] = useState(true);
@@ -57,28 +57,39 @@ function ProductCatalog({ token, user }) {
 
   const categories = ['ALL', ...Array.from(new Set(products.map((p) => p.category)))];
 
-  const displayedProducts = filteredCategory === 'ALL'
+  const categoryProducts = filteredCategory === 'ALL'
     ? products
     : products.filter((p) => p.category.toLowerCase() === filteredCategory.toLowerCase());
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const displayedProducts = normalizedQuery
+    ? categoryProducts.filter((product) => [product.productName, product.description, product.category]
+      .some((value) => String(value || '').toLowerCase().includes(normalizedQuery)))
+    : categoryProducts;
 
   return (
     <div>
-      <div className="page-header">
+      <div className="page-header" id="catalog">
         <div>
-          <h2 className="page-title">Products Catalog</h2>
+          <h2 className="page-title">Shop products</h2>
           <p className="page-subtitle">
-            Curated essentials and quality goods for your everyday lifestyle
+            Find something you’ll love, at a price that feels right.
           </p>
         </div>
+      </div>
 
+      <div className="catalog-toolbar">
+        <span className="catalog-result-count">
+          {searchQuery.trim() ? `Results for “${searchQuery.trim()}” · ` : ''}
+          {displayedProducts.length} {displayedProducts.length === 1 ? 'item' : 'items'}
+        </span>
         <div className="page-controls">
           <select
-            className="select-input"
+            className="select-input category-select"
             value={filteredCategory}
             onChange={(e) => setFilteredCategory(e.target.value)}
             title="Filter by product category"
           >
-            <option value="ALL">All Categories</option>
+            <option value="ALL">All departments</option>
             {categories
               .filter((c) => c !== 'ALL')
               .map((cat) => (
@@ -94,8 +105,7 @@ function ProductCatalog({ token, user }) {
             onClick={fetchProducts}
             disabled={isLoading}
           >
-            <span>&#x21bb;</span>
-            <span>{isLoading ? 'Loading...' : 'Reload Products'}</span>
+            <span>{isLoading ? 'Loading…' : 'Refresh catalog'}</span>
           </button>
         </div>
       </div>
@@ -110,9 +120,8 @@ function ProductCatalog({ token, user }) {
       )}
 
       {isLoading && (
-        <div className="empty-state">
-          <h3>Loading Products...</h3>
-          <p>Fetching the latest catalog items...</p>
+        <div className="skeleton-grid" aria-label="Loading products">
+          {Array.from({ length: 8 }, (_, index) => <div className="skeleton-product" key={index} />)}
         </div>
       )}
 
@@ -121,6 +130,14 @@ function ProductCatalog({ token, user }) {
           {displayedProducts.map((product) => (
             <ProductCard key={product.productId} product={product} />
           ))}
+        </div>
+      )}
+
+      {!isLoading && products.length > 0 && displayedProducts.length === 0 && (
+        <div className="empty-state">
+          <h3>No matching products</h3>
+          <p>Try another search or choose a different department.</p>
+          <button type="button" className="btn" onClick={() => setFilteredCategory('ALL')}>Show all products</button>
         </div>
       )}
 

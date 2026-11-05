@@ -306,7 +306,7 @@ function UserProfileManagement({ user, onUpdateUser, onAccountDeleted }) {
             <div>
               <button
                 type="button"
-                className="btn btn-solid btn-block"
+                className="btn btn-danger btn-block"
                 onClick={handleExecuteDelete}
                 disabled={isSubmitting}
               >

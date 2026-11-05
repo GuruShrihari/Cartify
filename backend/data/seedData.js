@@ -7,6 +7,7 @@ const fetchFakeStoreProducts = async () => {
     return items.map((item) => ({
       productId: `P${100 + item.id}`,
       productName: item.title,
+      productImage: item.image,
       productPrice: Math.round(item.price * 80),
       category: item.category.toUpperCase(),
       quantity: item.rating?.count || 25,

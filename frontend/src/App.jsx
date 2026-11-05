@@ -10,6 +10,7 @@ function App() {
   const [activeView, setActiveView] = useState('login');
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const savedToken = localStorage.getItem('cartify_token');
@@ -57,7 +58,7 @@ function App() {
   return (
     <div className="app-container">
       <div className="top-notice">
-        Complimentary standard shipping on all orders &bull; 100% Authentic &bull; Cartify
+        Good finds for your everyday &nbsp;·&nbsp; Welcome to Cartify
       </div>
 
       <Navbar
@@ -65,6 +66,8 @@ function App() {
         setActiveView={setActiveView}
         user={user}
         onLogout={handleLogout}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
 
       <main className="container">
@@ -85,6 +88,7 @@ function App() {
           <ProductCatalog
             token={token}
             user={user}
+            searchQuery={searchQuery}
           />
         )}
 
@@ -99,7 +103,7 @@ function App() {
 
       <footer className="footer">
         <p>
-          <strong>Cartify</strong> &mdash; Modern Minimalist Shopping Platform.
+          <strong>Cartify</strong> &mdash; Everyday shopping, made simple.
         </p>
       </footer>
     </div>
