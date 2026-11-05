@@ -162,19 +162,19 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
               style={{
                 width: '100%',
                 height: '34px',
-                background: '#f8fafc',
-                border: '1px solid #cbd5e1',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-line)',
                 borderRadius: '6px',
                 fontSize: '12px',
                 fontWeight: 600,
-                color: '#0f172a',
+                color: 'var(--ink-800)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '6px',
               }}
             >
-              <ShieldCheck size={15} weight="fill" color="#2563eb" />
+              <ShieldCheck size={15} weight="fill" color="#3b82f6" />
               <span>Fill Admin (admin@cartify.com / admin123)</span>
             </button>
           </div>

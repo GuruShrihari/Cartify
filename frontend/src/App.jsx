@@ -45,6 +45,40 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
+  // Theme state: 'light' | 'dark' with localStorage persistence and OS preference detection
+  const [theme, setTheme] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cartify_theme');
+      if (saved === 'dark' || saved === 'light') return saved;
+      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+    } catch {
+      // fallback
+    }
+    return 'light';
+  });
+
+  // Synchronize data-theme on <html> root element & sync meta theme-color
+  useEffect(() => {
+    try {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.style.colorScheme = theme;
+      localStorage.setItem('cartify_theme', theme);
+
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) {
+        metaTheme.setAttribute('content', theme === 'dark' ? '#0d0f14' : '#fcfcfd');
+      }
+    } catch (e) {
+      console.error('Failed to sync theme:', e);
+    }
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   // Razorpay Checkout Modal state
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [checkoutItems, setCheckoutItems] = useState([]);
@@ -215,6 +249,8 @@ function App() {
         onOpenCart={() => setIsCartOpen(true)}
         selectedCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* Main Views Container */}

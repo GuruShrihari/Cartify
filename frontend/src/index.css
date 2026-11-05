@@ -2428,3 +2428,60 @@ img {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   Dark Mode Image & Specific Element Refinements
+   ========================================================================== */
+[data-theme="dark"] .product-image-box img,
+[data-theme="dark"] .modal-image-col img,
+[data-theme="dark"] .cart-item-thumb img,
+[data-theme="dark"] .gallery-main-frame img,
+[data-theme="dark"] .item-thumb-box img {
+  mix-blend-mode: normal;
+}
+
+[data-theme="dark"] .product-image-box,
+[data-theme="dark"] .modal-image-col,
+[data-theme="dark"] .cart-item-thumb,
+[data-theme="dark"] .gallery-main-frame,
+[data-theme="dark"] .item-thumb-box {
+  background: #171a23;
+}
+
+[data-theme="dark"] .detail-rating-pill {
+  background: rgba(234, 179, 8, 0.15);
+  color: #fde047;
+}
+
+[data-theme="dark"] .admin-badge {
+  background: rgba(153, 27, 27, 0.25);
+  color: #fca5a5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .product-image-box img,
+  :root:not([data-theme="light"]) .modal-image-col img,
+  :root:not([data-theme="light"]) .cart-item-thumb img,
+  :root:not([data-theme="light"]) .gallery-main-frame img,
+  :root:not([data-theme="light"]) .item-thumb-box img {
+    mix-blend-mode: normal;
+  }
+
+  :root:not([data-theme="light"]) .product-image-box,
+  :root:not([data-theme="light"]) .modal-image-col,
+  :root:not([data-theme="light"]) .cart-item-thumb,
+  :root:not([data-theme="light"]) .gallery-main-frame,
+  :root:not([data-theme="light"]) .item-thumb-box {
+    background: #171a23;
+  }
+
+  :root:not([data-theme="light"]) .detail-rating-pill {
+    background: rgba(234, 179, 8, 0.15);
+    color: #fde047;
+  }
+
+  :root:not([data-theme="light"]) .admin-badge {
+    background: rgba(153, 27, 27, 0.25);
+    color: #fca5a5;
+  }
+}

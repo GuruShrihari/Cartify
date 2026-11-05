@@ -243,9 +243,9 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
   if (!isAdmin) {
     return (
       <div className="container" style={{ padding: '80px 24px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '440px', margin: '0 auto', background: '#fff', border: '1px solid #fee2e2', borderRadius: '12px', padding: '36px 24px' }}>
-          <h2 style={{ fontSize: '20px', color: '#991b1b', marginBottom: '8px' }}>Access Denied</h2>
-          <p style={{ fontSize: '13.5px', color: '#6b7280', lineHeight: 1.6, marginBottom: '20px' }}>
+        <div style={{ maxWidth: '440px', margin: '0 auto', background: 'var(--bg-surface)', border: '1px solid var(--border-line)', borderRadius: '12px', padding: '36px 24px' }}>
+          <h2 style={{ fontSize: '20px', color: 'var(--error-text)', marginBottom: '8px' }}>Access Denied</h2>
+          <p style={{ fontSize: '13.5px', color: 'var(--ink-500)', lineHeight: 1.6, marginBottom: '20px' }}>
             Administrator privileges are required to view the management portal. Regular customer accounts cannot access administrative views.
           </p>
           <button type="button" className="btn-solid" onClick={onNavigateToStore}>
@@ -642,7 +642,7 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
                           <img
                             src={p.productImage}
                             alt={p.productName}
-                            style={{ width: '36px', height: '36px', objectFit: 'contain', background: '#f5f5f7', borderRadius: '4px' }}
+                            style={{ width: '36px', height: '36px', objectFit: 'contain', background: 'var(--bg-subtle)', borderRadius: '4px' }}
                           />
                           <span style={{ fontWeight: 500 }}>{p.productName}</span>
                         </div>

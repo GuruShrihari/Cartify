@@ -4,6 +4,8 @@ import {
   User,
   SignOut,
   ShieldCheck,
+  Sun,
+  Moon,
 } from '@phosphor-icons/react';
 
 function Navbar({
@@ -16,6 +18,8 @@ function Navbar({
   cartCount = 0,
   onOpenCart,
   onSelectCategory,
+  theme = 'light',
+  onToggleTheme,
 }) {
   const handleHomeClick = (e) => {
     e.preventDefault();
@@ -80,6 +84,21 @@ function Navbar({
               <span>Admin Portal</span>
             </button>
           )}
+
+          {/* Theme Mode Toggle */}
+          <button
+            type="button"
+            className="theme-toggle-btn"
+            onClick={onToggleTheme}
+            title={theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode'}
+            aria-label={theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode'}
+          >
+            {theme === 'dark' ? (
+              <Sun size={18} weight="regular" />
+            ) : (
+              <Moon size={18} weight="regular" />
+            )}
+          </button>
 
           {user ? (
             <>
