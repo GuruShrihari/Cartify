@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Navbar({ activeView, setActiveView, user, onLogout }) {
+function Navbar({ activeView, setActiveView, user, onLogout, cartCount }) {
   return (
     <header className="navbar">
       <div className="nav-inner">
@@ -22,6 +22,15 @@ function Navbar({ activeView, setActiveView, user, onLogout }) {
                 onClick={() => setActiveView('products')}
               >
                 Products
+              </button>
+
+              {/* Cart button — shows the number of distinct items in the cart */}
+              <button
+                type="button"
+                className={`btn ${activeView === 'cart' ? 'btn-solid' : ''}`}
+                onClick={() => setActiveView('cart')}
+              >
+                Cart {cartCount > 0 && `(${cartCount})`}
               </button>
 
               <button

@@ -4,12 +4,14 @@ import UserRegistration from './components/UserRegistration';
 import UserLogin from './components/UserLogin';
 import ProductCatalog from './components/ProductCatalog';
 import UserProfileManagement from './components/UserProfileManagement';
+import CartView from './components/CartView';
 import './App.css';
 
 function App() {
   const [activeView, setActiveView] = useState('login');
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     const savedToken = localStorage.getItem('cartify_token');
@@ -28,6 +30,35 @@ function App() {
     }
   }, []);
 
+  // Whenever the user is logged in, fetch the cart count so the Navbar badge stays accurate
+  useEffect(() => {
+    if (user) {
+      fetchCartCount(user.emailId);
+    } else {
+      setCartCount(0);
+    }
+  }, [user]);
+
+  // Also re-fetch the count whenever the user switches to or away from the cart view
+  useEffect(() => {
+    if (user && activeView === 'cart') {
+      fetchCartCount(user.emailId);
+    }
+  }, [activeView]);
+
+  // Fetch just the number of distinct items in the cart (for the Navbar badge)
+  const fetchCartCount = async (emailId) => {
+    try {
+      const response = await fetch(`/api/cart?emailId=${encodeURIComponent(emailId)}`);
+      const data = await response.json();
+      if (response.ok) {
+        setCartCount(data.count || 0);
+      }
+    } catch (err) {
+      // Silently ignore — the count badge is non-critical
+    }
+  };
+
   const handleLoginSuccess = ({ user: loggedInUser, token: authToken }) => {
     setUser(loggedInUser);
     setToken(authToken);
@@ -39,6 +70,7 @@ function App() {
   const handleLogout = () => {
     setUser(null);
     setToken(null);
+    setCartCount(0);
     localStorage.removeItem('cartify_token');
     localStorage.removeItem('cartify_user');
     setActiveView('login');
@@ -65,6 +97,7 @@ function App() {
         setActiveView={setActiveView}
         user={user}
         onLogout={handleLogout}
+        cartCount={cartCount}
       />
 
       <main className="container">
@@ -85,6 +118,13 @@ function App() {
           <ProductCatalog
             token={token}
             user={user}
+          />
+        )}
+
+        {user && activeView === 'cart' && (
+          <CartView
+            user={user}
+            onCartChange={() => fetchCartCount(user.emailId)}
           />
         )}
 

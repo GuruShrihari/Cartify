@@ -119,7 +119,7 @@ function ProductCatalog({ token, user }) {
       {!isLoading && displayedProducts.length > 0 && (
         <div className="product-grid">
           {displayedProducts.map((product) => (
-            <ProductCard key={product.productId} product={product} />
+            <ProductCard key={product.productId} product={product} user={user} />
           ))}
         </div>
       )}
