@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import UserRegistration from './components/UserRegistration';
 import UserLogin from './components/UserLogin';
@@ -13,9 +14,9 @@ import CartDrawer from './components/CartDrawer';
 import { Check } from '@phosphor-icons/react';
 import './App.css';
 
-function App() {
-  // Default view is 'products' so guests can browse freely without login
-  const [activeView, setActiveView] = useState('products');
+function AppContent() {
+  const navigate = useNavigate();
+
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [currentOrder, setCurrentOrder] = useState(null);
 
@@ -46,7 +47,7 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Theme state: 'light' | 'dark'. Default is strictly 'light' per user specification.
+  // Theme state: 'light' | 'dark'. Default is strictly 'light'.
   const [theme, setTheme] = useState(() => {
     try {
       const saved = localStorage.getItem('cartify_theme');
@@ -77,7 +78,7 @@ function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Razorpay Checkout Modal state
+  // Razorpay Checkout Modal state & direct checkout state
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [checkoutItems, setCheckoutItems] = useState([]);
   const [checkoutTotal, setCheckoutTotal] = useState(0);
@@ -132,11 +133,11 @@ function App() {
   // Dedicated Product Page selection
   const handleSelectProduct = (product) => {
     setSelectedProduct(product);
-    setActiveView('product-detail');
+    navigate(`/products/${product.productId}`, { state: { product } });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Direct Buy Now takes user directly to the dedicated Checkout Page
+  // Direct Buy Now takes user directly to the dedicated Checkout Page (/checkout)
   const handleDirectBuy = (product, quantity = 1) => {
     const total = Number(product.productPrice || 0) * quantity;
     setCheckoutItems([
@@ -150,11 +151,11 @@ function App() {
       },
     ]);
     setCheckoutTotal(total);
-    setActiveView('checkout');
+    navigate('/checkout');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Cart checkout takes user directly to the dedicated Checkout Page
+  // Cart checkout takes user directly to the dedicated Checkout Page (/checkout)
   const handleCartCheckout = () => {
     if (cart.length === 0) return;
     const total = cart.reduce(
@@ -164,7 +165,7 @@ function App() {
     setCheckoutItems(cart);
     setCheckoutTotal(total);
     setIsCartOpen(false);
-    setActiveView('checkout');
+    navigate('/checkout');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -174,20 +175,11 @@ function App() {
     // Remove purchased items from cart if any
     const purchasedIds = new Set((order.items || []).map((i) => i.productId));
     setCart((prev) => prev.filter((i) => !purchasedIds.has(i.productId)));
-    setActiveView('order-success');
+    setCheckoutItems([]);
+    setCheckoutTotal(0);
+    navigate('/order-success');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     showToast('Payment verified via Razorpay! Confirmation email dispatched.');
-  };
-
-  // Navigation with RBAC guard
-  const handleNavigateView = (view) => {
-    if (view === 'admin' && user?.role !== 'admin') {
-      showToast('Admin privilege required to access portal');
-      setActiveView('login');
-      return;
-    }
-    setActiveView(view);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleLoginSuccess = ({ user: loggedInUser, token: authToken }) => {
@@ -197,10 +189,10 @@ function App() {
     localStorage.setItem('cartify_user', JSON.stringify(loggedInUser));
 
     if (loggedInUser.role === 'admin') {
-      setActiveView('admin');
+      navigate('/admin');
       showToast(`Welcome Admin, ${loggedInUser.username}`);
     } else {
-      setActiveView('products');
+      navigate('/products');
       showToast(`Welcome back, ${loggedInUser.username}`);
     }
   };
@@ -210,7 +202,7 @@ function App() {
     setToken(null);
     localStorage.removeItem('cartify_token');
     localStorage.removeItem('cartify_user');
-    setActiveView('products');
+    navigate('/products');
     showToast('Signed out');
   };
 
@@ -228,6 +220,12 @@ function App() {
 
   const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Effective checkout items: if checkoutItems is empty but cart has items, fallback to cart
+  const effectiveCheckoutItems = checkoutItems.length > 0 ? checkoutItems : cart;
+  const effectiveCheckoutTotal = checkoutItems.length > 0
+    ? checkoutTotal
+    : cart.reduce((sum, item) => sum + Number(item.productPrice || 0) * item.quantity, 0);
+
   return (
     <div className="app-container">
       {/* Toast Notification */}
@@ -240,8 +238,6 @@ function App() {
 
       {/* Main Header / Navbar */}
       <Navbar
-        activeView={activeView}
-        setActiveView={handleNavigateView}
         user={user}
         onLogout={handleLogout}
         searchQuery={searchQuery}
@@ -254,104 +250,151 @@ function App() {
         onToggleTheme={handleToggleTheme}
       />
 
-      {/* Main Views Container */}
+      {/* Main Views Container via React Router */}
       <main>
-        {/* Products View: accessible by ALL users without login */}
-        {activeView === 'products' && (
-          <ProductCatalog
-            token={token}
-            user={user}
-            searchQuery={searchQuery}
-            onAddToCart={handleAddToCart}
-            cart={cart}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-            onRequireAuth={() => setActiveView('login')}
-            onSelectProduct={handleSelectProduct}
+        <Routes>
+          {/* Products View: accessible by ALL users without login at / or /products */}
+          <Route
+            path="/"
+            element={
+              <ProductCatalog
+                token={token}
+                user={user}
+                searchQuery={searchQuery}
+                onAddToCart={handleAddToCart}
+                onBuyNow={handleDirectBuy}
+                cart={cart}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                onRequireAuth={() => navigate('/login')}
+                onSelectProduct={handleSelectProduct}
+              />
+            }
           />
-        )}
-
-        {/* Dedicated Individual Product Detail Page */}
-        {activeView === 'product-detail' && (
-          <ProductDetailPage
-            product={selectedProduct}
-            onBack={() => setActiveView('products')}
-            onAddToCart={handleAddToCart}
-            onBuyNow={handleDirectBuy}
-            isInCart={cart.find((i) => i.productId === selectedProduct?.productId)?.quantity || 0}
+          <Route
+            path="/products"
+            element={
+              <ProductCatalog
+                token={token}
+                user={user}
+                searchQuery={searchQuery}
+                onAddToCart={handleAddToCart}
+                onBuyNow={handleDirectBuy}
+                cart={cart}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                onRequireAuth={() => navigate('/login')}
+                onSelectProduct={handleSelectProduct}
+              />
+            }
           />
-        )}
 
-        {/* Dedicated Checkout Page with Product Details & Razorpay Payment */}
-        {activeView === 'checkout' && (
-          <CheckoutPage
-            items={checkoutItems}
-            totalAmount={checkoutTotal}
-            user={user}
-            onPaymentSuccess={handlePaymentSuccess}
-            onBack={() => {
-              if (selectedProduct) {
-                setActiveView('product-detail');
-              } else {
-                setActiveView('products');
-              }
-            }}
+          {/* Dedicated Individual Product Detail Page: e.g. /products/P101 */}
+          <Route
+            path="/products/:id"
+            element={
+              <ProductDetailPage
+                product={selectedProduct}
+                onBack={() => navigate('/products')}
+                onAddToCart={handleAddToCart}
+                onBuyNow={handleDirectBuy}
+                isInCart={
+                  cart.find((i) => i.productId === selectedProduct?.productId)?.quantity || 0
+                }
+              />
+            }
           />
-        )}
 
-        {/* Order Confirmation / Success Page (Post-Razorpay Payment & Resend Dispatch) */}
-        {activeView === 'order-success' && (
-          <OrderSuccessPage
-            order={currentOrder}
-            onContinueShopping={() => setActiveView('products')}
-            onNavigateToAccount={() => {
-              if (user) setActiveView('profile');
-              else setActiveView('login');
-            }}
+          {/* Dedicated Checkout Page: /checkout */}
+          <Route
+            path="/checkout"
+            element={
+              <CheckoutPage
+                items={effectiveCheckoutItems}
+                totalAmount={effectiveCheckoutTotal}
+                user={user}
+                onPaymentSuccess={handlePaymentSuccess}
+                onBack={() => navigate('/products')}
+              />
+            }
           />
-        )}
 
-        {/* RBAC Admin Portal: Restricted to role === 'admin' */}
-        {activeView === 'admin' && (
-          <AdminDashboard
-            user={user}
-            token={token}
-            onNavigateToStore={() => setActiveView('products')}
+          {/* Order Confirmation / Success Page: /order-success */}
+          <Route
+            path="/order-success"
+            element={
+              <OrderSuccessPage
+                order={currentOrder}
+                onContinueShopping={() => navigate('/products')}
+                onNavigateToAccount={() => {
+                  if (user) navigate('/profile');
+                  else navigate('/login');
+                }}
+              />
+            }
           />
-        )}
 
-        {/* Login View */}
-        {activeView === 'login' && (
-          <div className="container">
-            <UserLogin
-              onLoginSuccess={handleLoginSuccess}
-              onNavigateToRegister={() => setActiveView('register')}
-              onCancel={() => setActiveView('products')}
-            />
-          </div>
-        )}
+          {/* RBAC Admin Portal: /admin */}
+          <Route
+            path="/admin"
+            element={
+              <AdminDashboard
+                user={user}
+                token={token}
+                onNavigateToStore={() => navigate('/products')}
+              />
+            }
+          />
 
-        {/* Register View */}
-        {activeView === 'register' && (
-          <div className="container">
-            <UserRegistration
-              onNavigateToLogin={() => setActiveView('login')}
-              onCancel={() => setActiveView('products')}
-            />
-          </div>
-        )}
+          {/* Login View: /login */}
+          <Route
+            path="/login"
+            element={
+              <div className="container">
+                <UserLogin
+                  onLoginSuccess={handleLoginSuccess}
+                  onNavigateToRegister={() => navigate('/register')}
+                  onCancel={() => navigate('/products')}
+                />
+              </div>
+            }
+          />
 
-        {/* Profile Management View: requires authentication */}
-        {activeView === 'profile' && user && (
-          <div className="container">
-            <UserProfileManagement
-              user={user}
-              onUpdateUser={handleUpdateUser}
-              onAccountDeleted={handleAccountDeleted}
-              onNavigateToAdmin={() => setActiveView('admin')}
-            />
-          </div>
-        )}
+          {/* Register View: /register */}
+          <Route
+            path="/register"
+            element={
+              <div className="container">
+                <UserRegistration
+                  onNavigateToLogin={() => navigate('/login')}
+                  onCancel={() => navigate('/products')}
+                />
+              </div>
+            }
+          />
+
+          {/* Profile Management View: /profile */}
+          <Route
+            path="/profile"
+            element={
+              user ? (
+                <div className="container">
+                  <UserProfileManagement
+                    user={user}
+                    onUpdateUser={handleUpdateUser}
+                    onAccountDeleted={handleAccountDeleted}
+                    onNavigateToAdmin={() => navigate('/admin')}
+                  />
+                </div>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          {/* Catch-all redirect to products catalog */}
+          <Route path="*" element={<Navigate to="/products" replace />} />
+        </Routes>
       </main>
 
       {/* Slide-over Cart Drawer */}
@@ -365,7 +408,7 @@ function App() {
         user={user}
       />
 
-      {/* Razorpay Checkout Modal */}
+      {/* Razorpay Checkout Modal (fallback support) */}
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
@@ -392,4 +435,10 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
+}

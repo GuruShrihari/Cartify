@@ -15,6 +15,7 @@ function ProductCatalog({
   user,
   searchQuery,
   onAddToCart,
+  onBuyNow,
   cart = [],
   selectedCategory,
   onSelectCategory,
@@ -180,14 +181,18 @@ function ProductCatalog({
   };
 
   const handleModalBuyNow = () => {
-    if (quickViewProduct && onAddToCart) {
-      onAddToCart(quickViewProduct);
-    }
+    const prod = quickViewProduct;
+    const qty = modalQuantity;
     setQuickViewProduct(null);
-    if (!user && onRequireAuth) {
-      onRequireAuth();
-    } else {
-      alert(`Proceeding to checkout for ${quickViewProduct.productName}!`);
+    if (onBuyNow && prod) {
+      onBuyNow(prod, qty);
+    } else if (prod && onAddToCart) {
+      for (let i = 0; i < qty; i++) {
+        onAddToCart(prod);
+      }
+      if (!user && onRequireAuth) {
+        onRequireAuth();
+      }
     }
   };
 

@@ -1,3 +1,4 @@
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   MagnifyingGlass,
   ShoppingBag,
@@ -9,8 +10,6 @@ import {
 } from '@phosphor-icons/react';
 
 function Navbar({
-  activeView,
-  setActiveView,
   user,
   onLogout,
   searchQuery,
@@ -21,30 +20,45 @@ function Navbar({
   theme = 'light',
   onToggleTheme,
 }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const handleHomeClick = (e) => {
     e.preventDefault();
     if (onSelectCategory) onSelectCategory('ALL');
-    setActiveView('products');
+    navigate('/products');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setActiveView('products');
+    if (location.pathname !== '/' && location.pathname !== '/products') {
+      navigate('/products');
+    }
     const catalogEl = document.getElementById('all-products-section');
     if (catalogEl) {
       catalogEl.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
+  const handleSearchChange = (val) => {
+    onSearchChange(val);
+    if (location.pathname !== '/' && location.pathname !== '/products') {
+      navigate('/products');
+    }
+  };
+
   const isAdmin = user && user.role === 'admin';
+  const isAdminActive = location.pathname.startsWith('/admin');
+  const isProfileActive = location.pathname === '/profile';
+  const isLoginActive = location.pathname === '/login';
 
   return (
     <header className="navbar">
       <div className="nav-main">
         {/* Minimalist Logo */}
         <a
-          href="#home"
+          href="/products"
           className="brand-logo"
           onClick={handleHomeClick}
           aria-label="Cartify Home"
@@ -52,20 +66,15 @@ function Navbar({
           <span className="brand-text">Cartify</span>
         </a>
 
-        {/* Clean Minimal Search Input */}
+        {/* Minimalist Search Bar */}
         <form className="nav-search-form" onSubmit={handleSearchSubmit} role="search">
-          <MagnifyingGlass size={16} weight="regular" className="search-icon" />
+          <MagnifyingGlass size={16} weight="bold" className="search-icon" aria-hidden="true" />
           <input
             type="search"
             className="nav-search-input"
             placeholder="Search catalog..."
             value={searchQuery}
-            onChange={(e) => {
-              onSearchChange(e.target.value);
-              if (activeView !== 'products') {
-                setActiveView('products');
-              }
-            }}
+            onChange={(e) => handleSearchChange(e.target.value)}
             aria-label="Search catalog"
           />
         </form>
@@ -76,8 +85,8 @@ function Navbar({
           {isAdmin && (
             <button
               type="button"
-              className={`nav-admin-pill ${activeView === 'admin' ? 'active' : ''}`}
-              onClick={() => setActiveView('admin')}
+              className={`nav-admin-pill ${isAdminActive ? 'active' : ''}`}
+              onClick={() => navigate('/admin')}
               title="Admin Management & Analytics"
             >
               <ShieldCheck size={16} weight="fill" />
@@ -104,8 +113,8 @@ function Navbar({
             <>
               <button
                 type="button"
-                className={`nav-action-text-btn ${activeView === 'profile' ? 'active' : ''}`}
-                onClick={() => setActiveView('profile')}
+                className={`nav-action-text-btn ${isProfileActive ? 'active' : ''}`}
+                onClick={() => navigate('/profile')}
               >
                 <User size={16} weight="regular" />
                 <span>{user.username}</span>
@@ -123,8 +132,8 @@ function Navbar({
           ) : (
             <button
               type="button"
-              className={`nav-action-text-btn ${activeView === 'login' ? 'active' : ''}`}
-              onClick={() => setActiveView('login')}
+              className={`nav-action-text-btn ${isLoginActive ? 'active' : ''}`}
+              onClick={() => navigate('/login')}
             >
               Sign In
             </button>

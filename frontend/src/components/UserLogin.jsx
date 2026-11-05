@@ -48,7 +48,7 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
   };
 
   const handleDemoFill = () => {
-    setEmailId('demo@cartify.com');
+    setEmailId('shonlyforstudies@gmail.com');
     setPassword('demo123');
   };
 
@@ -101,7 +101,7 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
               id="login-email"
               type="email"
               className="text-input"
-              placeholder="e.g. demo@cartify.com"
+              placeholder="e.g. shonlyforstudies@gmail.com"
               value={emailId}
               onChange={(e) => setEmailId(e.target.value)}
               required
@@ -153,7 +153,7 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
               }}
             >
               <User size={14} weight="regular" />
-              <span>Fill Customer (demo@cartify.com / demo123)</span>
+              <span>Fill Customer (shonlyforstudies@gmail.com / demo123)</span>
             </button>
 
             <button

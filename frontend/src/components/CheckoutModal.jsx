@@ -15,7 +15,7 @@ function CheckoutModal({
 }) {
   const [shippingAddress, setShippingAddress] = useState({
     fullName: user?.username || 'Customer',
-    email: user?.emailId || 'customer@cartify.com',
+    email: user?.emailId || 'shonlyforstudies@gmail.com',
     phone: '9876543210',
     addressLine: '12, Ocean View Road',
     city: 'Chennai',
