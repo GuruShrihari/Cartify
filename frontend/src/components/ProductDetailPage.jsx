@@ -120,7 +120,7 @@ function ProductDetailPage({
               <span
                 className="status-dot"
                 style={{
-                  background: Number(product.quantity) > 0 ? '#16a34a' : '#dc2626',
+                  background: Number(product.quantity) > 0 ? 'var(--success-text)' : 'var(--error-text)',
                 }}
               />
               {Number(product.quantity) > 0

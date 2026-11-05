@@ -45,14 +45,11 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Theme state: 'light' | 'dark' with localStorage persistence and OS preference detection
+  // Theme state: 'light' | 'dark'. Default is strictly 'light' per user specification.
   const [theme, setTheme] = useState(() => {
     try {
       const saved = localStorage.getItem('cartify_theme');
       if (saved === 'dark' || saved === 'light') return saved;
-      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
-      }
     } catch {
       // fallback
     }
@@ -330,6 +327,7 @@ function App() {
               user={user}
               onUpdateUser={handleUpdateUser}
               onAccountDeleted={handleAccountDeleted}
+              onNavigateToAdmin={() => setActiveView('admin')}
             />
           </div>
         )}

@@ -30,7 +30,7 @@ function OrderSuccessPage({ order, onContinueShopping, onNavigateToAccount }) {
       <div className="success-card">
         {/* Header Icon */}
         <div className="success-icon-wrap">
-          <CheckCircle size={48} weight="fill" color="#166534" />
+          <CheckCircle size={48} weight="fill" color="var(--success-text)" />
         </div>
 
         <span className="success-kicker">Order Placed Successfully</span>
@@ -41,7 +41,7 @@ function OrderSuccessPage({ order, onContinueShopping, onNavigateToAccount }) {
 
         {/* Resend Email Notice Pill */}
         <div className="email-sent-banner">
-          <EnvelopeSimple size={18} weight="bold" color="#2563eb" />
+          <EnvelopeSimple size={18} weight="bold" color="var(--info-text)" />
           <span>
             Confirmation email receipt dispatched to <strong>{order.user?.emailId}</strong> via <em>noreply@sreeaditya.tech</em>
           </span>

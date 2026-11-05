@@ -300,7 +300,7 @@ function CheckoutModal({
               marginTop: '14px',
             }}
           >
-            <ShieldCheck size={14} weight="fill" color="#166534" />
+            <ShieldCheck size={14} weight="fill" color="var(--success-text)" />
             <span>256-bit Encrypted Razorpay Gateway &middot; Automated Invoice by Resend</span>
           </div>
         </form>

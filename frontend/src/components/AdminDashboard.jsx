@@ -650,7 +650,7 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
                       <td><span style={{ fontSize: '12px', color: 'var(--ink-500)' }}>{p.category}</span></td>
                       <td><strong className="price-num">₹{Number(p.productPrice).toLocaleString('en-IN')}</strong></td>
                       <td>
-                        <span style={{ color: Number(p.quantity) > 0 ? '#166534' : '#dc2626', fontWeight: 600 }}>
+                        <span style={{ color: Number(p.quantity) > 0 ? 'var(--success-text)' : 'var(--error-text)', fontWeight: 600 }}>
                           {p.quantity} in stock
                         </span>
                       </td>
@@ -722,7 +722,7 @@ function AdminDashboard({ user, token, onNavigateToStore }) {
                         <div style={{ fontSize: '11.5px', color: 'var(--ink-400)' }}>{o.user?.emailId}</div>
                       </td>
                       <td>
-                        <strong className="price-num" style={{ color: '#166534', fontSize: '14px' }}>
+                        <strong className="price-num" style={{ color: 'var(--success-text)', fontSize: '14px' }}>
                           +₹{Number(o.totalAmount).toLocaleString('en-IN')}
                         </strong>
                       </td>
