@@ -14,7 +14,6 @@ function Navbar({
   onSearchChange,
   cartCount = 0,
   onOpenCart,
-  selectedCategory,
   onSelectCategory,
 }) {
   const handleHomeClick = (e) => {
@@ -45,56 +44,6 @@ function Navbar({
         >
           <span className="brand-text">Cartify</span>
         </a>
-
-        {/* Category Navigation Links */}
-        <nav className="nav-categories" aria-label="Department navigation">
-          <button
-            type="button"
-            className={`nav-cat-link ${activeView === 'products' && (!selectedCategory || selectedCategory === 'ALL') ? 'active' : ''}`}
-            onClick={() => {
-              if (onSelectCategory) onSelectCategory('ALL');
-              setActiveView('products');
-            }}
-          >
-            All Items
-          </button>
-          <button
-            type="button"
-            className={`nav-cat-link ${selectedCategory === 'ELECTRONICS' ? 'active' : ''}`}
-            onClick={() => {
-              if (onSelectCategory) onSelectCategory('ELECTRONICS');
-              setActiveView('products');
-              const el = document.getElementById('electronics-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            Electronics
-          </button>
-          <button
-            type="button"
-            className={`nav-cat-link ${selectedCategory === 'APPAREL' ? 'active' : ''}`}
-            onClick={() => {
-              if (onSelectCategory) onSelectCategory('APPAREL');
-              setActiveView('products');
-              const el = document.getElementById('fashion-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            Apparel
-          </button>
-          <button
-            type="button"
-            className={`nav-cat-link ${selectedCategory === 'HOME' ? 'active' : ''}`}
-            onClick={() => {
-              if (onSelectCategory) onSelectCategory('HOME');
-              setActiveView('products');
-              const el = document.getElementById('home-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            Living
-          </button>
-        </nav>
 
         {/* Clean Minimal Search Input */}
         <form className="nav-search-form" onSubmit={handleSearchSubmit} role="search">
@@ -146,7 +95,7 @@ function Navbar({
             </button>
           )}
 
-          {/* Bag / Cart Button */}
+          {/* Bag Button */}
           <button
             type="button"
             className="nav-cart-btn"
