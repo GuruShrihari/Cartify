@@ -20,6 +20,53 @@ function UserOrdersPage({ user, token }) {
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('ALL');
 
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadOrders() {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const headers = {};
+        const authToken = token || localStorage.getItem('cartify_token');
+        if (authToken) {
+          headers['Authorization'] = `Bearer ${authToken}`;
+        }
+
+        const queryEmail = user.emailId ? `?emailId=${encodeURIComponent(user.emailId)}` : '';
+        const res = await fetch(`/api/orders/my-orders${queryEmail}`, { headers });
+        const data = await res.json();
+
+        if (!ignore) {
+          if (!res.ok) {
+            setError(data.message || 'Failed to retrieve your order history.');
+          } else {
+            setOrders(data.orders || []);
+          }
+        }
+      } catch (err) {
+        if (!ignore) {
+          setError('Network connection error: ' + err.message);
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadOrders();
+    return () => {
+      ignore = true;
+    };
+  }, [user, token]);
+
   const fetchMyOrders = async () => {
     if (!user) {
       setIsLoading(false);
@@ -51,10 +98,6 @@ function UserOrdersPage({ user, token }) {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchMyOrders();
-  }, [user, token]);
 
   if (!user) {
     return (

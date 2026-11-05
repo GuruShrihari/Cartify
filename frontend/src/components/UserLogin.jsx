@@ -57,7 +57,7 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
   };
 
   const handleDemoFill = () => {
-    setEmailId('shonlyforstudies@gmail.com');
+    setEmailId('sura06.init@gmail.com');
     setPassword('demo123');
     setErrorMessage(null);
     setFilledRole('customer');
@@ -139,7 +139,7 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
               id="login-email"
               type="email"
               className="text-input"
-              placeholder="e.g. shonlyforstudies@gmail.com"
+              placeholder="e.g. sura06.init@gmail.com"
               value={emailId}
               onChange={(e) => {
                 setEmailId(e.target.value);
@@ -187,7 +187,7 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
               type="button"
               className={`demo-account-card ${filledRole === 'customer' ? 'active' : ''}`}
               onClick={handleDemoFill}
-              title="Click to fill Customer credentials (shonlyforstudies@gmail.com / demo123)"
+              title="Click to fill Customer credentials (sura06.init@gmail.com / demo123)"
             >
               <div className="demo-account-icon customer">
                 <User size={18} weight="bold" />
@@ -208,7 +208,7 @@ function UserLogin({ onLoginSuccess, onNavigateToRegister, onCancel }) {
                   </span>
                 </div>
                 <div className="demo-account-details">
-                  <span className="demo-email">shonlyforstudies@gmail.com</span>
+                  <span className="demo-email">sura06.init@gmail.com</span>
                   <span className="demo-dot">&middot;</span>
                   <span className="demo-pass">demo123</span>
                 </div>

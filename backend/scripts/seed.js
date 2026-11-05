@@ -182,7 +182,7 @@ const products = [
 
 const demoUser = {
   username: 'Demo User',
-  emailId: 'shonlyforstudies@gmail.com',
+  emailId: 'sura06.init@gmail.com',
   age: 22,
   password: 'demo123',
   role: 'user',
@@ -232,7 +232,7 @@ const seed = async () => {
   console.log(`[Seed]: Admin user inserted -> ${adminResult.upsertedCount}, updated -> ${adminResult.modifiedCount}`);
   console.log(`[Seed]: Total products now -> ${await Product.countDocuments()}`);
   console.log(`[Seed]: Total users now -> ${await User.countDocuments()}`);
-  console.log('[Seed]: Demo login -> shonlyforstudies@gmail.com / demo123 (role: user)');
+  console.log('[Seed]: Demo login -> sura06.init@gmail.com / demo123 (role: user)');
   console.log('[Seed]: Admin login -> admin@cartify.com / admin123 (role: admin)');
 
   await mongoose.disconnect();

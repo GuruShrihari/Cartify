@@ -400,7 +400,7 @@ For quick evaluation, one-click auto-fill buttons are provided directly on the *
 
 | Role | Email ID | Password | Access Capabilities |
 | :--- | :--- | :--- | :--- |
-| **Customer** | `shonlyforstudies@gmail.com` | `demo123` | Browsing, cart drawer, Razorpay checkout, live order history, status tracking (`/orders`), profile management. |
+| **Customer** | `sura06.init@gmail.com` | `demo123` | Browsing, cart drawer, Razorpay checkout, live order history, status tracking (`/orders`), profile management. |
 | **Administrator** | `admin@cartify.com` | `admin123` | Full RBAC portal (`/admin`), revenue analytics, fulfillment status changes, product catalog CRUD (Add/Edit/Delete). |
 
 ---
@@ -431,7 +431,7 @@ For quick evaluation, one-click auto-fill buttons are provided directly on the *
 4. The backend immediately:
    * Updates the MongoDB Atlas document.
    * Dispatches a branded shipment notification email to the customer via Resend.
-5. Sign in as the **Customer** (`shonlyforstudies@gmail.com`) and open `/orders`:
+5. Sign in as the **Customer** (`sura06.init@gmail.com`) and open `/orders`:
    * Notice the status badge switches to **Shipped** (🚚) in blue.
    * The "Shipped" category filter tab updates its counter.
 

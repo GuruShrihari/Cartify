@@ -24,7 +24,7 @@ function CheckoutPage({
 }) {
   const [shippingAddress, setShippingAddress] = useState({
     fullName: user?.username || 'Customer',
-    email: user?.emailId || 'shonlyforstudies@gmail.com',
+    email: user?.emailId || 'sura06.init@gmail.com',
     phone: '9876543210',
     addressLine: '12, Ocean View Road',
     city: 'Chennai',
