@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import UserRegistration from './components/UserRegistration';
@@ -11,8 +11,15 @@ import CheckoutPage from './components/CheckoutPage';
 import CheckoutModal from './components/CheckoutModal';
 import UserProfileManagement from './components/UserProfileManagement';
 import CartDrawer from './components/CartDrawer';
-import { Check } from '@phosphor-icons/react';
+import { Check, LockSimple } from '@phosphor-icons/react';
 import './App.css';
+
+function RequireAuthCheckout({ onRequireAuth }) {
+  useEffect(() => {
+    onRequireAuth();
+  }, [onRequireAuth]);
+  return <Navigate to="/login" state={{ from: '/checkout' }} replace />;
+}
 
 function AppContent() {
   const navigate = useNavigate();
@@ -92,12 +99,18 @@ function AppContent() {
     }
   }, [cart]);
 
-  const showToast = (message) => {
-    setToastMessage(message);
-    setTimeout(() => {
+  const toastTimerRef = useRef(null);
+
+  const showToast = useCallback((msg, type = 'success', duration = 3800) => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    const payload = typeof msg === 'object' && msg !== null ? msg : { message: String(msg), type };
+    setToastMessage(payload);
+    toastTimerRef.current = setTimeout(() => {
       setToastMessage(null);
-    }, 2800);
-  };
+    }, duration);
+  }, []);
 
   const handleAddToCart = (product) => {
     setCart((prevCart) => {
@@ -154,11 +167,14 @@ function AppContent() {
     setCheckoutTotal(total);
 
     if (!user) {
-      showToast('Please sign in or create an account to proceed to checkout');
+      showToast(
+        `Please sign in or create an account to complete your purchase of “${product.productName}”.`,
+        'auth',
+        4500
+      );
       navigate('/login', {
         state: {
           from: '/checkout',
-          notice: `Please sign in or create an account to complete your purchase of “${product.productName}”.`,
         },
       });
       return;
@@ -180,11 +196,14 @@ function AppContent() {
     setIsCartOpen(false);
 
     if (!user) {
-      showToast('Please sign in or create an account to proceed to checkout');
+      showToast(
+        'Please sign in or create an account to complete checkout for your bag.',
+        'auth',
+        4200
+      );
       navigate('/login', {
         state: {
           from: '/checkout',
-          notice: 'Please sign in or create an account to complete checkout for your bag.',
         },
       });
       return;
@@ -279,11 +298,19 @@ function AppContent() {
 
   return (
     <div className="app-container">
-      {/* Toast Notification */}
+      {/* Floating Toaster Notification */}
       {toastMessage && (
-        <div className="minimal-toast">
-          <Check size={16} weight="bold" />
-          <span>{toastMessage}</span>
+        <div
+          className={`minimal-toast ${toastMessage.type === 'auth' ? 'toast-auth' : ''}`}
+          role="status"
+          aria-live="polite"
+        >
+          {toastMessage.type === 'auth' ? (
+            <LockSimple size={16} weight="bold" />
+          ) : (
+            <Check size={16} weight="bold" />
+          )}
+          <span>{typeof toastMessage === 'object' ? toastMessage.message : toastMessage}</span>
         </div>
       )}
 
@@ -367,13 +394,10 @@ function AppContent() {
                   onBack={() => navigate('/products')}
                 />
               ) : (
-                <Navigate
-                  to="/login"
-                  state={{
-                    from: '/checkout',
-                    notice: 'Please sign in or create an account to access checkout.',
-                  }}
-                  replace
+                <RequireAuthCheckout
+                  onRequireAuth={() =>
+                    showToast('Please sign in or create an account to access checkout.', 'auth', 4000)
+                  }
                 />
               )
             }

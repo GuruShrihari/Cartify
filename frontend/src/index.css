@@ -219,24 +219,47 @@ img {
   min-height: 100vh;
 }
 
-/* Toast */
+/* Toast / Notification Toaster */
 .minimal-toast {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 1000;
+  max-width: min(92vw, 440px);
+  z-index: 2000;
   background: var(--btn-primary-bg);
   color: var(--btn-primary-text);
-  padding: 10px 18px;
+  padding: 12px 18px;
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-floating);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
   border: 1px solid var(--border-line);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 13px;
   font-weight: 500;
-  animation: toastIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  line-height: 1.45;
+  animation: toastIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+}
+
+.minimal-toast svg {
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.minimal-toast.toast-auth {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+[data-theme="dark"] .minimal-toast {
+  background: #f3f4f6;
+  color: #0d0f14;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65);
+}
+
+[data-theme="dark"] .minimal-toast.toast-auth {
+  border-color: rgba(0, 0, 0, 0.2);
 }
 
 @keyframes toastIn {
